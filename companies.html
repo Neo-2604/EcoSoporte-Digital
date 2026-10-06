@@ -1,0 +1,3 @@
+{% extends "base.html" %}{% block title %}Empresas{% endblock %}
+{% block content %}<div class="heading"><div><span class="eyebrow">EMPRESAS</span><h1>Empresas atendidas</h1></div>{% if session.get('role')=='ADMINISTRADOR' %}<a class="btn primary" href="{{url_for('companies.new')}}">+ Registrar empresa</a>{% endif %}</div>
+<div class="cards">{% for c in companies %}<article><span class="badge">{{c.estado}}</span><h3>{{c.nombre}}</h3><p>{{c.sector or 'Sector no definido'}} · {{c.ciudad or 'Ubicación no definida'}}</p><p>{{c.email or ''}}<br>{{c.telefono or ''}}</p></article>{% else %}<div class="empty">No hay empresas registradas.</div>{% endfor %}</div>{% endblock %}

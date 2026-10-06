@@ -1,0 +1,12 @@
+{% extends "base.html" %}{% block title %}EcoSoporte Digital | Soporte TI{% endblock %}
+{% block content %}
+<section class="landing">
+<div class="landing-copy"><span class="eyebrow">SOPORTE TI · MESA DE AYUDA · SOSTENIBILIDAD</span>
+<h1>Tu tecnología funcionando.<br><span>Tu empresa avanzando.</span></h1>
+<p>Centraliza solicitudes, mantenimiento, diagnóstico y seguimiento tecnológico en una sola plataforma.</p>
+<a class="btn primary" href="{{ url_for('auth.login') }}">Ingresar a la plataforma →</a>
+</div>
+<div class="visual"><div class="watermark">ECO</div><div class="dashboard-card"><b>Panel de soporte</b><span class="online">● En línea</span><div class="fake-ticket">🖥️ Equipo no enciende <em>Alta</em></div><div class="fake-ticket">🌐 Problema de red <em>Media</em></div><div class="fake-ticket">🔧 Mantenimiento <em>Programado</em></div></div></div>
+</section>
+<section class="landing-section"><span class="eyebrow">SERVICIOS</span><h2>Soporte TI pensado para tu negocio</h2><div class="cards"><article><i>🎫</i><h3>Gestión de tickets</h3><p>Seguimiento completo de solicitudes.</p></article><article><i>🛠️</i><h3>Mantenimiento</h3><p>Preventivo y correctivo para tus equipos.</p></article><article><i>🌐</i><h3>Infraestructura</h3><p>Apoyo en redes, software y sistemas.</p></article><article><i>♻️</i><h3>Tecnología sostenible</h3><p>Reparar, mantener, actualizar y reutilizar.</p></article></div></section>
+{% endblock %}
