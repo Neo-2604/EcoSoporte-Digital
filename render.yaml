@@ -3,4 +3,4 @@ services:
     name: ecosoporte-digital
     runtime: python
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn run:app
+    startCommand: gunicorn "ecosoporte:create_app()"

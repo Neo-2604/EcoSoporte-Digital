@@ -1,6 +1,6 @@
 import os, tempfile
 import pytest
-from app import create_app
+from ecosoporte import create_app
 
 @pytest.fixture
 def app():
