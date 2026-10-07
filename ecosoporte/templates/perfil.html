@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Mi Perfil | EcoSoporte Digital{% endblock %}
+
+{% block content %}
+<div class="page-heading">
+  <div>
+    <span class="heading-eyebrow">INFORMACIÓN DE CUENTA</span>
+    <h1 class="page-title">Mi Perfil</h1>
+    <p class="page-subtitle">Gestiona tu información personal y credenciales de acceso</p>
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1.6fr; gap: 24px;">
+  <!-- Summary Card -->
+  <section class="panel-card" style="text-align: center; display: flex; flex-direction: column; align-items: center;">
+    <div class="user-avatar" style="width: 80px; height: 80px; font-size: 32px; margin-bottom: 16px;">
+      {{ user.nombre[0] | upper }}
+    </div>
+    <h2 style="font-size: 20px; font-weight: 800; color: var(--text-main);">{{ user.nombre }}</h2>
+    <span class="badge badge-proceso" style="margin: 8px 0;">{{ user.role_name }}</span>
+    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">{{ user.email }}</p>
+
+    <div style="width: 100%; border-top: 1px solid var(--border-color); padding-top: 16px; text-align: left; font-size: 12.5px; color: var(--text-muted);">
+      <p style="margin-bottom: 6px;"><strong>Empresa:</strong> {{ user.empresa_nombre or 'EcoSoporte Digital' }}</p>
+      <p style="margin-bottom: 6px;"><strong>Estado:</strong> <span style="color: var(--primary-green);">{{ user.estado }}</span></p>
+      <p><strong>Miembro desde:</strong> {{ user.created_at[:10] }}</p>
+    </div>
+  </section>
+
+  <!-- Edit Profile & Password Form -->
+  <section class="panel-card">
+    <h2 class="panel-title" style="margin-bottom: 20px;">Actualizar Datos</h2>
+    <form method="post" action="{{ url_for('main.perfil') }}">
+      <div class="form-group">
+        <label class="form-label">Nombre Completo</label>
+        <input type="text" name="nombre" value="{{ user.nombre }}" class="form-control" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Correo electrónico (Solo lectura)</label>
+        <input type="email" value="{{ user.email }}" class="form-control" disabled style="opacity: 0.6;">
+      </div>
+
+      <div style="margin: 24px 0 16px; padding-top: 16px; border-top: 1px solid var(--border-color);">
+        <h3 style="font-size: 15px; font-weight: 700; color: var(--text-main); margin-bottom: 12px;">Cambiar Contraseña</h3>
+        <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Deja estos campos en blanco si no deseas cambiar tu contraseña actual.</p>
+
+        <div class="form-group">
+          <label class="form-label">Contraseña Actual</label>
+          <input type="password" name="password_actual" class="form-control" placeholder="••••••••">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Nueva Contraseña</label>
+          <input type="password" name="password_nueva" class="form-control" placeholder="••••••••">
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary">
+        Guardar Cambios
+      </button>
+    </form>
+  </section>
+</div>
+{% endblock %}

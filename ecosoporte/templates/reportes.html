@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Reportes e Indicadores | EcoSoporte Digital{% endblock %}
+
+{% block content %}
+<div class="page-heading">
+  <div>
+    <span class="heading-eyebrow">ANALÍTICA Y SENSÓRICA TI</span>
+    <h1 class="page-title">Reportes Operativos</h1>
+    <p class="page-subtitle">Indicadores clave de rendimiento (KPIs) de soporte y mesa de ayuda</p>
+  </div>
+</div>
+
+<div class="metrics-grid">
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Total Solicitudes</span>
+      <span class="stat-value">{{ metrics.total_tickets }}</span>
+    </div>
+    <div class="stat-icon-wrapper">📊</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Resueltas Exitosamente</span>
+      <span class="stat-value" style="color: var(--emerald-green);">{{ metrics.resueltos }}</span>
+    </div>
+    <div class="stat-icon-wrapper" style="background: rgba(36,180,126,0.1); color: var(--emerald-green);">✓</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Tiempo Promedio Respuesta</span>
+      <span class="stat-value" style="color: var(--cyan-accent);">{{ metrics.promedio_atencion }}</span>
+    </div>
+    <div class="stat-icon-wrapper" style="background: rgba(0,240,255,0.1); color: var(--cyan-accent);">⏱️</div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-info">
+      <span class="stat-label">Satisfacción Global</span>
+      <span class="stat-value" style="color: var(--primary-green);">{{ metrics.satisfaccion }}</span>
+    </div>
+    <div class="stat-icon-wrapper">⭐</div>
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+  <section class="panel-card">
+    <h2 class="panel-title" style="margin-bottom: 16px;">Solicitudes por Categoria</h2>
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Categoría</th>
+            <th>Total Tickets</th>
+            <th>Proporción</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for cat in metrics.tickets_por_categoria %}
+          <tr>
+            <td><strong>{{ cat.nombre }}</strong></td>
+            <td>{{ cat.total }}</td>
+            <td>
+              <div style="background: var(--bg-dark); border-radius: 4px; overflow: hidden; height: 8px; width: 100px;">
+                <div style="background: var(--primary-green); height: 100%; width: {{ (cat.total * 20) if cat.total < 5 else 100 }}%;"></div>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel-card">
+    <h2 class="panel-title" style="margin-bottom: 16px;">Distribución por Prioridad</h2>
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Prioridad</th>
+            <th>Total Tickets</th>
+            <th>Estado SLA</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for prio in metrics.tickets_por_prioridad %}
+          <tr>
+            <td>
+              <span class="badge {% if prio.name == 'CRITICA' %}badge-critica{% elif prio.name == 'ALTA' %}badge-alta{% endif %}">
+                {{ prio.name }}
+              </span>
+            </td>
+            <td>{{ prio.total }}</td>
+            <td><span class="badge badge-proceso">SLA VIGENTE</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}

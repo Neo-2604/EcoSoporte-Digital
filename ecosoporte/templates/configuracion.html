@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Configuración | EcoSoporte Digital{% endblock %}
+
+{% block content %}
+<div class="page-heading">
+  <div>
+    <span class="heading-eyebrow">PREFERENCIAS DEL SISTEMA</span>
+    <h1 class="page-title">Configuración</h1>
+    <p class="page-subtitle">Ajustes generales de la cuenta y notificaciones de soporte</p>
+  </div>
+</div>
+
+<div style="max-width: 600px;">
+  <section class="panel-card">
+    <h2 class="panel-title" style="margin-bottom: 20px;">Preferencias de Notificación</h2>
+    <form method="post" action="{{ url_for('main.configuracion') }}">
+      <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border-color);">
+        <div>
+          <strong>Notificaciones por correo electrónico</strong>
+          <p style="font-size: 12px; color: var(--text-muted);">Recibir actualizaciones en tiempo real cuando cambie el estado de un ticket.</p>
+        </div>
+        <input type="checkbox" checked style="width: 20px; height: 20px; accent-color: var(--primary-green);">
+      </div>
+
+      <div class="form-group" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border-color);">
+        <div>
+          <strong>Alertas de tickets críticos (SLA)</strong>
+          <p style="font-size: 12px; color: var(--text-muted);">Avisos inmediatos sobre solicitudes próximas a vencer.</p>
+        </div>
+        <input type="checkbox" checked style="width: 20px; height: 20px; accent-color: var(--primary-green);">
+      </div>
+
+      <div class="form-group" style="margin-top: 20px;">
+        <label class="form-label">Tema Visual</label>
+        <select class="form-control">
+          <option selected>Modo Oscuro Corporativo (Recomendado)</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="margin-top: 10px;">
+        Guardar Configuración
+      </button>
+    </form>
+  </section>
+</div>
+{% endblock %}
