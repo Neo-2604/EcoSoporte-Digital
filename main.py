@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, session, redirect, url_for
-from .database import get_db
+from database import get_db
 from .decorators import login_required
 
 main_bp = Blueprint("main", __name__)
