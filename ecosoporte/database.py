@@ -61,15 +61,18 @@ CREATE TABLE IF NOT EXISTS categorias (
 CREATE TABLE IF NOT EXISTS prioridades (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nombre TEXT UNIQUE NOT NULL,
+    name TEXT UNIQUE NOT NULL,
     nivel INTEGER NOT NULL
 );
 CREATE TABLE IF NOT EXISTS estados_ticket (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    nombre TEXT UNIQUE NOT NULL
+    nombre TEXT UNIQUE NOT NULL,
+    name TEXT UNIQUE NOT NULL
 );
 CREATE TABLE IF NOT EXISTS niveles_soporte (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    nombre TEXT UNIQUE NOT NULL
+    nombre TEXT UNIQUE NOT NULL,
+    name TEXT UNIQUE NOT NULL
 );
 CREATE TABLE IF NOT EXISTS tickets (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -185,13 +188,13 @@ def seed_db(app):
         for role in roles:
             db.execute("INSERT OR IGNORE INTO roles(name) VALUES (?)", (role,))
         for name, level in [("BAJA",1),("MEDIA",2),("ALTA",3),("CRITICA",4)]:
-            db.execute("INSERT OR IGNORE INTO prioridades(name,nivel) VALUES (?,?)",(name,level))
+            db.execute("INSERT OR IGNORE INTO prioridades(nombre,name,nivel) VALUES (?,?,?)",(name,name,level))
         for name in ["NUEVO","ASIGNADO","EN DIAGNÓSTICO","EN PROCESO","PENDIENTE","PENDIENTE DEL USUARIO","PENDIENTE DE TERCERO","ESCALADO","RESUELTO","CERRADO","REABIERTO"]:
-            db.execute("INSERT OR IGNORE INTO estados_ticket(name) VALUES (?)",(name,))
+            db.execute("INSERT OR IGNORE INTO estados_ticket(nombre,name) VALUES (?,?)",(name,name))
         for name in ["Hardware","Software","Redes","Sistemas","Seguridad","Mantenimiento","Otros"]:
             db.execute("INSERT OR IGNORE INTO categorias(nombre) VALUES (?)",(name,))
         for name in ["NIVEL 1","NIVEL 2","NIVEL 3"]:
-            db.execute("INSERT OR IGNORE INTO niveles_soporte(nombre) VALUES (?)",(name,))
+            db.execute("INSERT OR IGNORE INTO niveles_soporte(nombre,name) VALUES (?,?)",(name,name))
         admin_email = os.getenv("ADMIN_EMAIL","admin@ecosoportedigital.com")
         admin_password = os.getenv("ADMIN_PASSWORD","EcoSoporteAdmin2026!")
         role = db.execute("SELECT id FROM roles WHERE name='ADMINISTRADOR'").fetchone()
