@@ -1,12 +1,40 @@
-{% extends "base.html" %}{% block title %}EcoSoporte Digital | Soporte TI{% endblock %}
-{% block content %}
-<section class="landing">
-<div class="landing-copy"><span class="eyebrow">SOPORTE TI · MESA DE AYUDA · SOSTENIBILIDAD</span>
-<h1>Tu tecnología funcionando.<br><span>Tu empresa avanzando.</span></h1>
-<p>Centraliza solicitudes, mantenimiento, diagnóstico y seguimiento tecnológico en una sola plataforma.</p>
-<a class="btn primary" href="{{ url_for('auth.login') }}">Ingresar a la plataforma →</a>
-</div>
-<div class="visual"><div class="watermark">ECO</div><div class="dashboard-card"><b>Panel de soporte</b><span class="online">● En línea</span><div class="fake-ticket">🖥️ Equipo no enciende <em>Alta</em></div><div class="fake-ticket">🌐 Problema de red <em>Media</em></div><div class="fake-ticket">🔧 Mantenimiento <em>Programado</em></div></div></div>
+{% extends "base.html" %}
+
+{% block title %}EcoSoporte Digital | Soporte TI y Mesa de Ayuda Empresarial{% endblock %}
+
+{% block public_content %}
+<section class="landing" style="padding: 60px 40px; display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 40px; align-items: center; max-width: 1300px; margin: 0 auto;">
+  <div class="landing-copy">
+    <span class="heading-eyebrow">SOPORTE TI · MESA DE AYUDA · TECNOLOGÍA SOSTENIBLE</span>
+    <h1 style="font-size: 48px; font-weight: 800; line-height: 1.1; margin: 16px 0; color: var(--text-main);">
+      Tecnología que impulsa tu empresa y <span style="color: var(--primary-green);">cuida el planeta</span>
+    </h1>
+    <p style="font-size: 16px; color: var(--text-muted); margin-bottom: 28px; max-width: 580px;">
+      Centraliza solicitudes, mantenimiento preventivo, inventario de equipos y atención remota en una plataforma corporativa moderna y ágil.
+    </p>
+    <a class="btn btn-primary" href="{{ url_for('auth.login') }}" style="padding: 14px 28px; font-size: 15px;">
+      Ingresar a la plataforma corporativa →
+    </a>
+  </div>
+
+  <div class="visual" style="position: relative;">
+    <div class="panel-card" style="border-color: var(--primary-green); box-shadow: var(--shadow-glow);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+        <span style="font-weight: 800; color: var(--text-main);">🟢 Mesa de Ayuda TI En Línea</span>
+        <span class="badge badge-proceso">SLA 98.5%</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 12px; font-size: 13px;">
+        <div style="padding: 10px; background: rgba(9, 19, 22, 0.6); border-radius: var(--radius-sm); border-left: 3px solid var(--danger);">
+          <strong>🖥️ Servidor de Archivos:</strong> Falla en volumen de almacenamiento · <span style="color: var(--danger);">CRÍTICO</span>
+        </div>
+        <div style="padding: 10px; background: rgba(9, 19, 22, 0.6); border-radius: var(--radius-sm); border-left: 3px solid var(--primary-green);">
+          <strong>🌐 Red Corporativa:</strong> Optimización de ancho de banda y VPN · <span style="color: var(--primary-green);">RESUELTO</span>
+        </div>
+        <div style="padding: 10px; background: rgba(9, 19, 22, 0.6); border-radius: var(--radius-sm); border-left: 3px solid var(--warning);">
+          <strong>💻 Mantenimiento Equipos:</strong> Limpieza y actualización programada · <span style="color: var(--warning);">EN PROCESO</span>
+        </div>
+      </div>
+    </div>
+  </div>
 </section>
-<section class="landing-section"><span class="eyebrow">SERVICIOS</span><h2>Soporte TI pensado para tu negocio</h2><div class="cards"><article><i>🎫</i><h3>Gestión de tickets</h3><p>Seguimiento completo de solicitudes.</p></article><article><i>🛠️</i><h3>Mantenimiento</h3><p>Preventivo y correctivo para tus equipos.</p></article><article><i>🌐</i><h3>Infraestructura</h3><p>Apoyo en redes, software y sistemas.</p></article><article><i>♻️</i><h3>Tecnología sostenible</h3><p>Reparar, mantener, actualizar y reutilizar.</p></article></div></section>
 {% endblock %}

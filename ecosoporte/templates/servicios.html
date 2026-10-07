@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Catálogo de Servicios | EcoSoporte Digital{% endblock %}
+
+{% block content %}
+<div class="page-heading">
+  <div>
+    <span class="heading-eyebrow">PORTAFOLIO DE SOPORTE TI</span>
+    <h1 class="page-title">Catálogo de Servicios</h1>
+    <p class="page-subtitle">Soluciones tecnológicas especializadas para la continuidad operativa de tu empresa</p>
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
+  {% for s in servicios %}
+  <div class="panel-card" style="display: flex; flex-direction: column; justify-content: space-between; margin-bottom: 0;">
+    <div>
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+        <span style="font-size: 32px;">{{ s.icono or '🛠️' }}</span>
+        <span class="badge badge-nuevo">{{ s.categoria }}</span>
+      </div>
+      <h3 style="font-size: 18px; font-weight: 700; color: var(--text-main); margin-bottom: 8px;">{{ s.nombre }}</h3>
+      <p style="font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">{{ s.descripcion }}</p>
+    </div>
+
+    <div style="padding-top: 14px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; font-size: 12px;">
+      <span style="color: var(--primary-green); font-weight: 600;">⏱️ Est. {{ s.tiempo_estimado }}</span>
+      <a href="{{ url_for('tickets.new') }}" class="btn btn-sm btn-primary">Solicitar Servicio</a>
+    </div>
+  </div>
+  {% else %}
+  <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-muted);">
+    No hay servicios configurados en el catálogo.
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

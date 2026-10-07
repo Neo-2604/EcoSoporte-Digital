@@ -1,2 +1,54 @@
-{% extends "base.html" %}{% block title %}Crear ticket{% endblock %}
-{% block content %}<div class="heading"><div><span class="eyebrow">MESA DE AYUDA</span><h1>Crear solicitud</h1></div></div><form class="panel form" method="post"><label>Título<input name="titulo" required placeholder="Ej. Equipo no enciende"></label><label>Descripción<textarea name="descripcion" required placeholder="Describe el problema con el mayor detalle posible."></textarea></label><div class="grid2"><label>Categoría<select name="categoria">{% for c in categories %}<option>{{c.nombre}}</option>{% endfor %}</select></label><label>Prioridad<select name="prioridad">{% for p in priorities %}<option>{{p.nombre}}</option>{% endfor %}</select></label></div><button class="btn primary">Crear ticket</button></form>{% endblock %}
+{% extends "base.html" %}
+
+{% block title %}Crear Solicitud | EcoSoporte Digital{% endblock %}
+
+{% block content %}
+<div class="page-heading">
+  <div>
+    <span class="heading-eyebrow">NUEVO REQUERIMIENTO</span>
+    <h1 class="page-title">Crear Solicitud de Soporte</h1>
+    <p class="page-subtitle">Describe tu problema o requerimiento tecnológico</p>
+  </div>
+</div>
+
+<div style="max-width: 700px;">
+  <section class="panel-card">
+    <form method="post" action="{{ url_for('tickets.new') }}">
+      <div class="form-group">
+        <label class="form-label">Título de la Solicitud *</label>
+        <input type="text" name="titulo" class="form-control" placeholder="Ej. Falla en impresora de contabilidad / Problema con correo" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Descripción Detallada *</label>
+        <textarea name="descripcion" class="form-control" rows="5" placeholder="Explica detalladamente qué sucede, mensajes de error recibidos y desde cuándo presenta el problema..." required></textarea>
+      </div>
+
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label">Categoría</label>
+          <select name="categoria" class="form-control">
+            {% for c in categories %}
+            <option>{{ c.nombre }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Prioridad</label>
+          <select name="prioridad" class="form-control">
+            {% for p in priorities %}
+            <option>{{ p.nombre }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 12px; margin-top: 10px;">
+        <button type="submit" class="btn btn-primary" style="flex-grow: 1;">Enviar Solicitud →</button>
+        <a href="{{ url_for('main.inicio') }}" class="btn btn-secondary">Cancelar</a>
+      </div>
+    </form>
+  </section>
+</div>
+{% endblock %}

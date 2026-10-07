@@ -134,6 +134,7 @@ CREATE TABLE IF NOT EXISTS equipos (
     serial TEXT,
     sistema_operativo TEXT,
     estado TEXT DEFAULT 'ACTIVO',
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(empresa_id) REFERENCES empresas(id),
     FOREIGN KEY(usuario_id) REFERENCES usuarios(id)
 );
@@ -164,6 +165,32 @@ CREATE TABLE IF NOT EXISTS evaluaciones_empresa (
     FOREIGN KEY(empresa_id) REFERENCES empresas(id),
     FOREIGN KEY(tecnico_id) REFERENCES usuarios(id)
 );
+CREATE TABLE IF NOT EXISTS servicios (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    nombre TEXT NOT NULL,
+    categoria TEXT,
+    descripcion TEXT,
+    tiempo_estimado TEXT,
+    icono TEXT DEFAULT '🛠️',
+    estado TEXT DEFAULT 'ACTIVO'
+);
+CREATE TABLE IF NOT EXISTS base_conocimiento (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    titulo TEXT NOT NULL,
+    categoria TEXT NOT NULL,
+    contenido TEXT NOT NULL,
+    autor_id INTEGER,
+    vistas INTEGER DEFAULT 0,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(autor_id) REFERENCES usuarios(id)
+);
+CREATE TABLE IF NOT EXISTS ans_metas (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    prioridad_id INTEGER UNIQUE NOT NULL,
+    tiempo_respuesta_min INTEGER NOT NULL,
+    tiempo_solucion_min INTEGER NOT NULL,
+    FOREIGN KEY(prioridad_id) REFERENCES prioridades(id)
+);
 """
 
 def get_db():
@@ -181,26 +208,87 @@ def init_db(app):
         db.close()
 
 def seed_db(app):
-    from flask import current_app
     with app.app_context():
         db = get_db()
-        roles = ["ADMINISTRADOR","TECNICO_NIVEL_1","TECNICO_NIVEL_2","TECNICO_NIVEL_3","CLIENTE"]
+        # Ensure all roles exist
+        roles = ["ADMINISTRADOR", "SOPORTE TI", "USUARIO", "TECNICO_NIVEL_1", "TECNICO_NIVEL_2", "TECNICO_NIVEL_3", "CLIENTE"]
         for role in roles:
             db.execute("INSERT OR IGNORE INTO roles(name) VALUES (?)", (role,))
-        for name, level in [("BAJA",1),("MEDIA",2),("ALTA",3),("CRITICA",4)]:
-            db.execute("INSERT OR IGNORE INTO prioridades(nombre,name,nivel) VALUES (?,?,?)",(name,name,level))
-        for name in ["NUEVO","ASIGNADO","EN DIAGNÓSTICO","EN PROCESO","PENDIENTE","PENDIENTE DEL USUARIO","PENDIENTE DE TERCERO","ESCALADO","RESUELTO","CERRADO","REABIERTO"]:
-            db.execute("INSERT OR IGNORE INTO estados_ticket(nombre,name) VALUES (?,?)",(name,name))
-        for name in ["Hardware","Software","Redes","Sistemas","Seguridad","Mantenimiento","Otros"]:
-            db.execute("INSERT OR IGNORE INTO categorias(nombre) VALUES (?)",(name,))
-        for name in ["NIVEL 1","NIVEL 2","NIVEL 3"]:
-            db.execute("INSERT OR IGNORE INTO niveles_soporte(nombre,name) VALUES (?,?)",(name,name))
-        admin_email = os.getenv("ADMIN_EMAIL","admin@ecosoportedigital.com")
-        admin_password = os.getenv("ADMIN_PASSWORD","EcoSoporteAdmin2026!")
-        role = db.execute("SELECT id FROM roles WHERE name='ADMINISTRADOR'").fetchone()
-        exists = db.execute("SELECT id FROM usuarios WHERE email=?", (admin_email,)).fetchone()
-        if not exists:
-            db.execute("INSERT INTO usuarios(nombre,email,password_hash,role_id) VALUES (?,?,?,?)",
-                       ("Administrador",admin_email,generate_password_hash(admin_password),role["id"]))
+
+        for name, level in [("BAJA", 1), ("MEDIA", 2), ("ALTA", 3), ("CRITICA", 4)]:
+            db.execute("INSERT OR IGNORE INTO prioridades(nombre,name,nivel) VALUES (?,?,?)", (name, name, level))
+
+        for name in ["NUEVO", "ASIGNADO", "EN DIAGNÓSTICO", "EN PROCESO", "PENDIENTE", "PENDIENTE DEL USUARIO", "PENDIENTE DE TERCERO", "ESCALADO", "RESUELTO", "CERRADO", "REABIERTO"]:
+            db.execute("INSERT OR IGNORE INTO estados_ticket(nombre,name) VALUES (?,?)", (name, name))
+
+        for name in ["Hardware", "Software", "Redes", "Sistemas", "Seguridad", "Mantenimiento", "Otros"]:
+            db.execute("INSERT OR IGNORE INTO categorias(nombre) VALUES (?)", (name,))
+
+        for name in ["NIVEL 1", "NIVEL 2", "NIVEL 3"]:
+            db.execute("INSERT OR IGNORE INTO niveles_soporte(nombre,name) VALUES (?,?)", (name, name))
+
+        # Test credentials required by specification
+        test_accounts = [
+            ("Luis Neira", "admin@ecosoporte.com", "EcoSoporte2026!", "ADMINISTRADOR"),
+            ("Soporte Técnico TI", "soporte@ecosoporte.com", "Soporte2026!", "SOPORTE TI"),
+            ("Usuario Corporativo", "usuario@ecosoporte.com", "Usuario2026!", "USUARIO"),
+        ]
+
+        # Legacy admin account
+        admin_email = os.getenv("ADMIN_EMAIL", "admin@ecosoportedigital.com")
+        admin_password = os.getenv("ADMIN_PASSWORD", "EcoSoporteAdmin2026!")
+        test_accounts.append(("Administrador Sistema", admin_email, admin_password, "ADMINISTRADOR"))
+
+        for name, email, pwd, role_name in test_accounts:
+            role = db.execute("SELECT id FROM roles WHERE name=?", (role_name,)).fetchone()
+            if role:
+                exists = db.execute("SELECT id FROM usuarios WHERE lower(email)=?", (email.lower(),)).fetchone()
+                if not exists:
+                    db.execute("INSERT INTO usuarios(nombre,email,password_hash,role_id) VALUES (?,?,?,?)",
+                               (name, email, generate_password_hash(pwd), role["id"]))
+                else:
+                    # Make sure password & role matches required test credentials
+                    db.execute("UPDATE usuarios SET password_hash=?, role_id=? WHERE lower(email)=?",
+                               (generate_password_hash(pwd), role["id"], email.lower()))
+
+        # Seed initial servicios if empty
+        if db.execute("SELECT COUNT(*) c FROM servicios").fetchone()["c"] == 0:
+            sample_servicios = [
+                ("Mesa de Ayuda TI", "Soporte", "Atención presencial y remota para incidentes informáticos.", "15-30 min", "🎫"),
+                ("Mantenimiento Preventivo", "Infraestructura", "Limpieza, optimización y revisión diagnóstica de hardware.", "2-4 horas", "🛠️"),
+                ("Administración de Redes y WiFi", "Redes", "Configuración de routers, VLANs, switches y firewalls corporativos.", "1-2 horas", "🌐"),
+                ("Gestión de Usuarios y Accesos", "Seguridad", "Administración de correo, Active Directory y permisos de software.", "15 min", "🔑"),
+                ("Respaldo y Seguridad de Datos", "Seguridad", "Configuración de copias de seguridad automatizadas en la nube.", "1 hora", "☁️"),
+                ("Instalación de Software Corporativo", "Software", "Despliegue y licencias de suite ofimática y software especializado.", "30 min", "💻")
+            ]
+            for name, cat, desc, t_est, icon in sample_servicios:
+                db.execute("INSERT INTO servicios(nombre,categoria,descripcion,tiempo_estimado,icono) VALUES (?,?,?,?,?)",
+                           (name, cat, desc, t_est, icon))
+
+        # Seed initial Base de Conocimiento if empty
+        if db.execute("SELECT COUNT(*) c FROM base_conocimiento").fetchone()["c"] == 0:
+            admin_user = db.execute("SELECT id FROM usuarios WHERE email='admin@ecosoporte.com'").fetchone()
+            admin_id = admin_user["id"] if admin_user else 1
+            sample_articles = [
+                ("Cómo solicitar soporte técnico prioritario", "Guías", "Para crear un ticket crítico, ingresa a la sección Mis Solicitudes, selecciona la categoría correspondiente y marca la prioridad como CRÍTICA.", admin_id, 42),
+                ("Solución de problemas comunes de conexión a red WiFi", "Redes", "Verifica que el adaptador esté activo, ejecuta ipconfig /renew en consola o reinicia el punto de acceso corporativo.", admin_id, 89),
+                ("Configuración del correo corporativo en dispositivos móviles", "Software", "Usa los servidores IMAP/SMTP seguros indicados por el área TI. Activa la autenticación en dos pasos.", admin_id, 64),
+                ("Políticas de seguridad e higienización de contraseñas", "Seguridad", "Las contraseñas deben contener al menos 8 caracteres, mayúsculas, números y símbolos. Cambiar cada 90 días.", admin_id, 110)
+            ]
+            for title, cat, content, aut_id, views in sample_articles:
+                db.execute("INSERT INTO base_conocimiento(titulo,categoria,contenido,autor_id,vistas) VALUES (?,?,?,?,?)",
+                           (title, cat, content, aut_id, views))
+
+        # Seed initial ANS targets if empty
+        if db.execute("SELECT COUNT(*) c FROM ans_metas").fetchone()["c"] == 0:
+            priorities = db.execute("SELECT id, name FROM prioridades").fetchall()
+            target_times = {"BAJA": (120, 1440), "MEDIA": (60, 480), "ALTA": (30, 240), "CRITICA": (15, 60)}
+            for p in priorities:
+                p_name = p["name"]
+                if p_name in target_times:
+                    resp, sol = target_times[p_name]
+                    db.execute("INSERT INTO ans_metas(prioridad_id, tiempo_respuesta_min, tiempo_solucion_min) VALUES (?,?,?)",
+                               (p["id"], resp, sol))
+
         db.commit()
         db.close()

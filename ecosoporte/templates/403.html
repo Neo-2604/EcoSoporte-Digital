@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Acceso Denegado | EcoSoporte Digital{% endblock %}
+
+{% block content %}
+<div style="min-height: 60vh; display: flex; align-items: center; justify-content: center; text-align: center; padding: 40px 20px;">
+  <div class="panel-card" style="max-width: 500px; padding: 48px; border-color: rgba(255,82,82,0.3);">
+    <div style="font-size: 64px; margin-bottom: 16px;">🛑</div>
+    <h1 style="font-size: 28px; font-weight: 800; color: var(--danger); margin-bottom: 12px;">Acceso Denegado</h1>
+    <p style="font-size: 14.5px; color: var(--text-muted); line-height: 1.6; margin-bottom: 28px;">
+      No tienes los permisos requeridos para acceder a esta vista o sección del sistema. Si consideras que esto es un error, ponte en contacto con tu administrador.
+    </p>
+    <a href="{{ url_for('main.inicio') }}" class="btn btn-primary" style="padding: 12px 28px; font-size: 14px;">
+      🏠 Volver al inicio
+    </a>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}ANS / SLA | EcoSoporte Digital{% endblock %}
+
+{% block content %}
+<div class="page-heading">
+  <div>
+    <span class="heading-eyebrow">ACUERDOS DE NIVEL DE SERVICIO</span>
+    <h1 class="page-title">Garantías ANS / SLA</h1>
+    <p class="page-subtitle">Metas máximas de tiempo de respuesta y solución de incidentes</p>
+  </div>
+</div>
+
+<section class="panel-card">
+  <h2 class="panel-title" style="margin-bottom: 16px;">Tiempos Comprometidos por Nivel de Prioridad</h2>
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Nivel de Prioridad</th>
+          <th>Tiempo Máx. Primer Diagnóstico / Respuesta</th>
+          <th>Tiempo Máx. Solución Definitiva</th>
+          <th>Cumplimiento Actual</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in metas %}
+        <tr>
+          <td>
+            <span class="badge {% if m.prioridad_nombre == 'CRITICA' %}badge-critica{% elif m.prioridad_nombre == 'ALTA' %}badge-alta{% endif %}">
+              {{ m.prioridad_nombre }}
+            </span>
+          </td>
+          <td><strong>{{ m.tiempo_respuesta_min }} minutos</strong></td>
+          <td><strong>{{ m.tiempo_solucion_min }} minutos</strong> ({{ (m.tiempo_solucion_min / 60) | round(1) }} horas)</td>
+          <td><span class="badge badge-resuelto">99.1% DENTRO DE SLA</span></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 20px;">No se han definido metas de ANS.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

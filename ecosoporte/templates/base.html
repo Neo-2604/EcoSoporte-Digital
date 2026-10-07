@@ -1,28 +1,230 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{% block title %}EcoSoporte Digital{% endblock %}</title>
-<link rel="stylesheet" href="{{ url_for('static',filename='css/app.css') }}">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}EcoSoporte Digital | Gestión Inteligente de Soporte TI{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
 </head>
-<body>
-<header class="topbar">
-<a class="brand" href="{{ url_for('main.home') }}"><span class="logo">E</span><span><b>EcoSoporte</b><small>Digital</small></span></a>
-<nav>
-<a href="{{ url_for('main.dashboard') }}">Dashboard</a>
-{% if session.get('role') == 'ADMINISTRADOR' %}
-<a href="{{ url_for('admin.users') }}">Usuarios</a><a href="{{ url_for('companies.index') }}">Empresas</a><a href="{{ url_for('tickets.index') }}">Tickets</a>
-{% elif session.get('role','').startswith('TECNICO') %}
-<a href="{{ url_for('tickets.technician_dashboard') }}">Mis tickets</a><a href="{{ url_for('tickets.index') }}">Tickets</a><a href="{{ url_for('companies.index') }}">Empresas</a>
+<body class="dark-theme">
+{% if session.get('user_id') %}
+<div class="app-layout" id="app-layout">
+  <!-- Mobile Overlay -->
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+  <!-- Left Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <a href="{{ url_for('main.inicio') }}" class="brand-logo" title="EcoSoporte Digital">
+        <img src="{{ url_for('static', filename='logo.svg') }}" alt="EcoSoporte Digital" class="logo-img">
+      </a>
+      <button type="button" class="sidebar-toggle" id="sidebar-toggle" title="Contraer/Expandir menú">
+        <span class="toggle-icon">‹</span>
+      </button>
+    </div>
+
+    <div class="slogan-badge">
+      <small>🌱 Tecnología que impulsa tu empresa y cuida el planeta</small>
+    </div>
+
+    <!-- Authenticated User Profile Card -->
+    <div class="user-profile-card">
+      <div class="user-avatar" id="user-avatar-btn">
+        {{ session.get('name', 'U')[0] | upper }}
+      </div>
+      <div class="user-info">
+        <span class="user-name">{{ session.get('name', 'Usuario') }}</span>
+        <span class="user-role badge-role">{{ session.get('role', 'Usuario') }}</span>
+        <small class="user-email">{{ session.get('email', '') }}</small>
+      </div>
+      <button type="button" class="user-dropdown-trigger" id="user-dropdown-btn" title="Opciones de cuenta">⋮</button>
+
+      <!-- Profile Dropdown Menu -->
+      <div class="user-dropdown-menu" id="user-dropdown-menu">
+        <a href="{{ url_for('main.perfil') }}" class="dropdown-item">
+          <span class="icon">👤</span> Mi perfil
+        </a>
+        <a href="{{ url_for('main.configuracion') }}" class="dropdown-item">
+          <span class="icon">⚙️</span> Configuración
+        </a>
+        <div class="dropdown-divider"></div>
+        <a href="{{ url_for('auth.logout') }}" class="dropdown-item logout-item">
+          <span class="icon">🔒</span> Cerrar sesión
+        </a>
+      </div>
+    </div>
+
+    <!-- Navigation Menu according to Role -->
+    <nav class="sidebar-nav">
+      {% set current_endpoint = request.endpoint %}
+
+      {% if session.get('role') == 'ADMINISTRADOR' %}
+        <a href="{{ url_for('main.inicio') }}" class="nav-item {% if current_endpoint in ['main.inicio', 'main.dashboard_redirect'] %}active{% endif %}" data-tooltip="Inicio">
+          <span class="nav-icon">🏠</span> <span class="nav-text">Inicio</span>
+        </a>
+        <a href="{{ url_for('tickets.index') }}" class="nav-item {% if current_endpoint in ['tickets.index', 'tickets.detail'] %}active{% endif %}" data-tooltip="Solicitudes">
+          <span class="nav-icon">🎫</span> <span class="nav-text">Solicitudes / Tickets</span>
+        </a>
+        <a href="{{ url_for('main.inicio') }}" class="nav-item" data-tooltip="Soporte TI">
+          <span class="nav-icon">🛠️</span> <span class="nav-text">Soporte TI</span>
+        </a>
+        <a href="{{ url_for('main.equipos') }}" class="nav-item {% if current_endpoint == 'main.equipos' %}active{% endif %}" data-tooltip="Equipos">
+          <span class="nav-icon">💻</span> <span class="nav-text">Equipos</span>
+        </a>
+        <a href="{{ url_for('admin.users') }}" class="nav-item {% if current_endpoint == 'admin.users' %}active{% endif %}" data-tooltip="Usuarios">
+          <span class="nav-icon">👥</span> <span class="nav-text">Usuarios</span>
+        </a>
+        <a href="{{ url_for('main.servicios') }}" class="nav-item {% if current_endpoint == 'main.servicios' %}active{% endif %}" data-tooltip="Servicios">
+          <span class="nav-icon">📋</span> <span class="nav-text">Servicios</span>
+        </a>
+        <a href="{{ url_for('main.reportes') }}" class="nav-item {% if current_endpoint == 'main.reportes' %}active{% endif %}" data-tooltip="Reportes">
+          <span class="nav-icon">📊</span> <span class="nav-text">Reportes</span>
+        </a>
+        <a href="{{ url_for('main.ans') }}" class="nav-item {% if current_endpoint == 'main.ans' %}active{% endif %}" data-tooltip="ANS / SLA">
+          <span class="nav-icon">⏱️</span> <span class="nav-text">ANS / SLA</span>
+        </a>
+        <a href="{{ url_for('main.base_conocimiento') }}" class="nav-item {% if current_endpoint == 'main.base_conocimiento' %}active{% endif %}" data-tooltip="Base de Conocimiento">
+          <span class="nav-icon">📚</span> <span class="nav-text">Base de conocimiento</span>
+        </a>
+        <a href="{{ url_for('main.configuracion') }}" class="nav-item {% if current_endpoint == 'main.configuracion' %}active{% endif %}" data-tooltip="Configuración">
+          <span class="nav-icon">⚙️</span> <span class="nav-text">Configuración</span>
+        </a>
+
+      {% elif session.get('role') == 'SOPORTE TI' or session.get('role','').startswith('TECNICO') %}
+        <a href="{{ url_for('main.inicio') }}" class="nav-item {% if current_endpoint in ['main.inicio', 'main.dashboard_redirect'] %}active{% endif %}" data-tooltip="Inicio">
+          <span class="nav-icon">🏠</span> <span class="nav-text">Inicio</span>
+        </a>
+        <a href="{{ url_for('tickets.index') }}" class="nav-item {% if current_endpoint in ['tickets.index', 'tickets.detail'] %}active{% endif %}" data-tooltip="Solicitudes">
+          <span class="nav-icon">🎫</span> <span class="nav-text">Solicitudes / Tickets</span>
+        </a>
+        <a href="{{ url_for('main.inicio') }}" class="nav-item" data-tooltip="Soporte TI">
+          <span class="nav-icon">🛠️</span> <span class="nav-text">Soporte TI</span>
+        </a>
+        <a href="{{ url_for('main.equipos') }}" class="nav-item {% if current_endpoint == 'main.equipos' %}active{% endif %}" data-tooltip="Equipos">
+          <span class="nav-icon">💻</span> <span class="nav-text">Equipos</span>
+        </a>
+        <a href="{{ url_for('main.servicios') }}" class="nav-item {% if current_endpoint == 'main.servicios' %}active{% endif %}" data-tooltip="Servicios">
+          <span class="nav-icon">📋</span> <span class="nav-text">Servicios</span>
+        </a>
+        <a href="{{ url_for('main.ans') }}" class="nav-item {% if current_endpoint == 'main.ans' %}active{% endif %}" data-tooltip="ANS / SLA">
+          <span class="nav-icon">⏱️</span> <span class="nav-text">ANS / SLA</span>
+        </a>
+        <a href="{{ url_for('main.base_conocimiento') }}" class="nav-item {% if current_endpoint == 'main.base_conocimiento' %}active{% endif %}" data-tooltip="Base de Conocimiento">
+          <span class="nav-icon">📚</span> <span class="nav-text">Base de conocimiento</span>
+        </a>
+
+      {% else %}
+        <!-- USUARIO / CLIENTE -->
+        <a href="{{ url_for('main.inicio') }}" class="nav-item {% if current_endpoint in ['main.inicio', 'main.dashboard_redirect'] %}active{% endif %}" data-tooltip="Inicio">
+          <span class="nav-icon">🏠</span> <span class="nav-text">Inicio</span>
+        </a>
+        <a href="{{ url_for('tickets.new') }}" class="nav-item nav-action-btn {% if current_endpoint == 'tickets.new' %}active{% endif %}" data-tooltip="Crear solicitud">
+          <span class="nav-icon">➕</span> <span class="nav-text">Crear solicitud</span>
+        </a>
+        <a href="{{ url_for('tickets.index') }}" class="nav-item {% if current_endpoint in ['tickets.index', 'tickets.detail'] %}active{% endif %}" data-tooltip="Mis solicitudes">
+          <span class="nav-icon">🎫</span> <span class="nav-text">Mis solicitudes</span>
+        </a>
+        <a href="{{ url_for('main.servicios') }}" class="nav-item {% if current_endpoint == 'main.servicios' %}active{% endif %}" data-tooltip="Servicios">
+          <span class="nav-icon">📋</span> <span class="nav-text">Servicios</span>
+        </a>
+        <a href="{{ url_for('main.base_conocimiento') }}" class="nav-item {% if current_endpoint == 'main.base_conocimiento' %}active{% endif %}" data-tooltip="Base de conocimiento">
+          <span class="nav-icon">📚</span> <span class="nav-text">Base de conocimiento</span>
+        </a>
+      {% endif %}
+    </nav>
+  </aside>
+
+  <!-- Main Content Wrapper -->
+  <div class="main-wrapper">
+    <header class="top-header">
+      <div class="header-left">
+        <button type="button" class="mobile-hamburger" id="mobile-menu-btn" title="Abrir menú">
+          ☰
+        </button>
+        <span class="page-title-badge">Plataforma Empresarial TI</span>
+      </div>
+
+      <div class="header-right">
+        <a href="{{ url_for('main.base_conocimiento') }}" class="header-icon-btn" title="Ayuda y documentación">
+          ❓
+        </a>
+        <div class="header-user-quick">
+          <span class="quick-name">{{ session.get('name', '') }}</span>
+          <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-logout" title="Cerrar sesión">
+            🔒 Cerrar sesión
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Toast Notifications / Alerts -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="alerts-container" id="alerts-container">
+          {% for cat, msg in messages %}
+            <div class="toast-alert toast-{{ cat }}">
+              <span class="toast-icon">
+                {% if cat == 'success' %}✓{% elif cat == 'danger' %}✕{% elif cat == 'warning' %}⚠️{% else %}ℹ{% endif %}
+              </span>
+              <span class="toast-message">{{ msg }}</span>
+              <button type="button" class="toast-close" onclick="this.parentElement.remove()">×</button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <main class="page-content">
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer class="app-footer">
+      <div class="footer-content">
+        <span>© 2026 <strong>EcoSoporte Digital</strong> · Mesa de Ayuda y Gestión TI Sostenible ♻️</span>
+        <small class="footer-slogan">"Tecnología que impulsa tu empresa y cuida el planeta"</small>
+      </div>
+    </footer>
+  </div>
+</div>
+
 {% else %}
-<a href="{{ url_for('tickets.client_dashboard') }}">Mis tickets</a><a href="{{ url_for('tickets.new') }}">Crear ticket</a>
+<!-- Unauthenticated Public Layout -->
+<div class="public-layout">
+  <header class="public-header">
+    <a href="{{ url_for('main.home') }}" class="public-brand">
+      <img src="{{ url_for('static', filename='logo.svg') }}" alt="EcoSoporte Digital" class="public-logo">
+    </a>
+    <div class="public-actions">
+      <a href="{{ url_for('auth.login') }}" class="btn btn-primary">Iniciar sesión →</a>
+    </div>
+  </header>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="alerts-container" id="alerts-container">
+        {% for cat, msg in messages %}
+          <div class="toast-alert toast-{{ cat }}">
+            <span class="toast-message">{{ msg }}</span>
+            <button type="button" class="toast-close" onclick="this.parentElement.remove()">×</button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <main class="public-content">
+    {% block public_content %}{% endblock %}
+  </main>
+
+  <footer class="public-footer">
+    <p>© 2026 <strong>EcoSoporte Digital</strong> · "Tecnología que impulsa tu empresa y cuida el planeta"</p>
+  </footer>
+</div>
 {% endif %}
-<a href="{{ url_for('auth.logout') }}">Salir</a>
-</nav>
-<button id="theme">☾</button>
-</header>
-{% with messages=get_flashed_messages(with_categories=true) %}{% if messages %}<div class="alerts">{% for cat,msg in messages %}<div class="alert {{cat}}">{{msg}}</div>{% endfor %}</div>{% endif %}{% endwith %}
-<main class="page">{% block content %}{% endblock %}</main>
-<footer>© 2026 EcoSoporte Digital · Soporte TI responsable ♻</footer>
-<script src="{{ url_for('static',filename='js/app.js') }}"></script>
-</body></html>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

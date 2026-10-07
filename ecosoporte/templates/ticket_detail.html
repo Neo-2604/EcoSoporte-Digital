@@ -1,7 +1,130 @@
-{% extends "base.html" %}{% block title %}Ticket #{{ticket.id}}{% endblock %}
-{% block content %}<div class="heading"><div><span class="eyebrow">TICKET #{{ticket.id}}</span><h1>{{ticket.titulo}}</h1><p>{{ticket.estado}} · {{ticket.prioridad or 'Sin prioridad'}}</p></div></div>
-<div class="detail-grid"><section class="panel"><h2>Descripción</h2><p class="description">{{ticket.descripcion}}</p><div class="meta"><span>Cliente: <b>{{ticket.cliente}}</b></span><span>Categoría: <b>{{ticket.categoria or '-'}}</b></span><span>Técnico: <b>{{ticket.tecnico or 'Sin asignar'}}</b></span><span>Nivel: <b>{{ticket.nivel or '-'}}</b></span></div>
-{% if session.get('role') in ['ADMINISTRADOR','TECNICO_NIVEL_1','TECNICO_NIVEL_2','TECNICO_NIVEL_3'] %}<form class="inline-form" method="post" action="{{url_for('tickets.update',ticket_id=ticket.id)}}"><select name="estado">{% for s in ['NUEVO','ASIGNADO','EN DIAGNÓSTICO','EN PROCESO','PENDIENTE','PENDIENTE DEL USUARIO','PENDIENTE DE TERCERO','ESCALADO','RESUELTO','CERRADO','REABIERTO'] %}<option {% if ticket.estado==s %}selected{% endif %}>{{s}}</option>{% endfor %}</select><button class="btn primary">Actualizar estado</button></form>{% endif %}</section>
-<section class="panel"><h2>Historial</h2>{% for h in history %}<div class="history"><b>{{h.accion}}</b><small>{{h.nombre}} · {{h.created_at}}</small><p>{{h.detalle}}</p></div>{% else %}<p class="muted">Sin movimientos todavía.</p>{% endfor %}</section></div>
-{% if session.get('role','').startswith('TECNICO') %}<div class="detail-grid"><form class="panel form" method="post" action="{{url_for('tickets.diagnosis',ticket_id=ticket.id)}}"><h2>Registrar diagnóstico</h2><textarea name="descripcion" required></textarea><button class="btn primary">Guardar diagnóstico</button></form><form class="panel form" method="post" action="{{url_for('tickets.solution',ticket_id=ticket.id)}}"><h2>Registrar solución</h2><textarea name="descripcion" required></textarea><button class="btn primary">Guardar solución</button></form></div>{% endif %}
+{% extends "base.html" %}
+
+{% block title %}Ticket #{{ ticket.id }} | EcoSoporte Digital{% endblock %}
+
+{% block content %}
+<div class="page-heading">
+  <div>
+    <span class="heading-eyebrow">TICKET #{{ ticket.id }}</span>
+    <h1 class="page-title">{{ ticket.titulo }}</h1>
+    <p class="page-subtitle">Estado: <span class="badge badge-proceso">{{ ticket.estado }}</span> · Prioridad: <span class="badge {% if ticket.prioridad == 'CRITICA' %}badge-critica{% else %}badge-alta{% endif %}">{{ ticket.prioridad or 'NORMAL' }}</span></p>
+  </div>
+  <div>
+    <a href="{{ url_for('tickets.index') }}" class="btn btn-secondary">← Volver a tickets</a>
+  </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1.4fr 0.8fr; gap: 24px;">
+  <div style="display: flex; flex-direction: column; gap: 24px;">
+    <!-- Main Ticket Info -->
+    <section class="panel-card">
+      <h2 class="panel-title" style="margin-bottom: 12px;">Descripción del Inconveniente</h2>
+      <p style="color: var(--text-main); line-height: 1.7; white-space: pre-wrap; font-size: 14px; background: rgba(9, 19, 22, 0.6); padding: 16px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">{{ ticket.descripcion }}</p>
+
+      <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; font-size: 12.5px;">
+        <span style="padding: 8px 12px; background: var(--bg-card-hover); border-radius: var(--radius-sm);">Cliente: <strong>{{ ticket.cliente }}</strong></span>
+        <span style="padding: 8px 12px; background: var(--bg-card-hover); border-radius: var(--radius-sm);">Correo: <strong>{{ ticket.cliente_email or 'N/A' }}</strong></span>
+        <span style="padding: 8px 12px; background: var(--bg-card-hover); border-radius: var(--radius-sm);">Categoría: <strong>{{ ticket.categoria or 'General' }}</strong></span>
+        <span style="padding: 8px 12px; background: var(--bg-card-hover); border-radius: var(--radius-sm);">Técnico Asignado: <strong>{{ ticket.tecnico or 'Sin asignar' }}</strong></span>
+      </div>
+    </section>
+
+    <!-- Diagnostics & Solutions -->
+    {% if diagnostics or solutions %}
+    <section class="panel-card">
+      <h2 class="panel-title" style="margin-bottom: 16px;">Diagnósticos y Soluciones Técnicas</h2>
+      {% for d in diagnostics %}
+      <div style="margin-bottom: 14px; padding: 14px; background: rgba(0, 240, 255, 0.08); border-left: 4px solid var(--cyan-accent); border-radius: var(--radius-sm);">
+        <strong style="color: var(--cyan-accent); font-size: 13px;">🔍 Diagnóstico registrado por {{ d.nombre }}:</strong>
+        <p style="font-size: 13px; color: var(--text-main); margin-top: 4px;">{{ d.descripcion }}</p>
+        <small style="color: var(--text-muted); font-size: 11px;">{{ d.created_at }}</small>
+      </div>
+      {% endfor %}
+
+      {% for s in solutions %}
+      <div style="margin-bottom: 14px; padding: 14px; background: rgba(36, 180, 126, 0.12); border-left: 4px solid var(--emerald-green); border-radius: var(--radius-sm);">
+        <strong style="color: var(--emerald-green); font-size: 13px;">✓ Solución registrada por {{ s.nombre }}:</strong>
+        <p style="font-size: 13px; color: var(--text-main); margin-top: 4px;">{{ s.descripcion }}</p>
+        <small style="color: var(--text-muted); font-size: 11px;">{{ s.created_at }}</small>
+      </div>
+      {% endfor %}
+    </section>
+    {% endif %}
+
+    <!-- Technician Form Actions -->
+    {% if session.get('role') in ['ADMINISTRADOR', 'SOPORTE TI'] or session.get('role','').startswith('TECNICO') %}
+    <section class="panel-card">
+      <h2 class="panel-title" style="margin-bottom: 16px;">Acciones Técnicas de Atención</h2>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px;">
+        <!-- Diagnosis Form -->
+        <form method="post" action="{{ url_for('tickets.diagnosis', ticket_id=ticket.id) }}">
+          <div class="form-group">
+            <label class="form-label">Registrar Diagnóstico</label>
+            <textarea name="descripcion" class="form-control" rows="3" placeholder="Ingresa los hallazgos del diagnóstico..." required></textarea>
+          </div>
+          <button type="submit" class="btn btn-sm btn-secondary" style="width: 100%;">Guardar Diagnóstico</button>
+        </form>
+
+        <!-- Solution Form -->
+        <form method="post" action="{{ url_for('tickets.solution', ticket_id=ticket.id) }}">
+          <div class="form-group">
+            <label class="form-label">Registrar Solución y Resolver</label>
+            <textarea name="descripcion" class="form-control" rows="3" placeholder="Ingresa la solución implementada..." required></textarea>
+          </div>
+          <button type="submit" class="btn btn-sm btn-primary" style="width: 100%;">Resolver Ticket ✓</button>
+        </form>
+      </div>
+    </section>
+    {% endif %}
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 24px;">
+    <!-- Management Panel for Admin / Tech -->
+    {% if session.get('role') in ['ADMINISTRADOR', 'SOPORTE TI'] or session.get('role','').startswith('TECNICO') %}
+    <section class="panel-card">
+      <h2 class="panel-title" style="margin-bottom: 16px;">Gestión de Estado</h2>
+      <form method="post" action="{{ url_for('tickets.update', ticket_id=ticket.id) }}" style="margin-bottom: 20px;">
+        <div class="form-group">
+          <label class="form-label">Cambiar Estado Actual</label>
+          <select name="estado" class="form-control">
+            {% for s in ['NUEVO','ASIGNADO','EN DIAGNÓSTICO','EN PROCESO','PENDIENTE','PENDIENTE DEL USUARIO','PENDIENTE DE TERCERO','ESCALADO','RESUELTO','CERRADO','REABIERTO'] %}
+            <option {% if ticket.estado == s %}selected{% endif %}>{{ s }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <button type="submit" class="btn btn-sm btn-primary" style="width: 100%;">Actualizar Estado</button>
+      </form>
+
+      <form method="post" action="{{ url_for('tickets.assign', ticket_id=ticket.id) }}">
+        <div class="form-group">
+          <label class="form-label">Asignar Técnico</label>
+          <select name="tecnico_id" class="form-control">
+            {% for tec in tecnicos %}
+            <option value="{{ tec.id }}" {% if ticket.tecnico_id == tec.id %}selected{% endif %}>{{ tec.nombre }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <button type="submit" class="btn btn-sm btn-secondary" style="width: 100%;">Reasignar Técnico</button>
+      </form>
+    </section>
+    {% endif %}
+
+    <!-- Ticket Timeline History -->
+    <section class="panel-card">
+      <h2 class="panel-title" style="margin-bottom: 16px;">Historial de Trazabilidad</h2>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        {% for h in history %}
+        <div style="padding-left: 12px; border-left: 2px solid var(--primary-green);">
+          <strong style="font-size: 13px; color: var(--text-main);">{{ h.accion }}</strong>
+          <p style="font-size: 12px; color: var(--text-muted); margin: 2px 0;">{{ h.detalle }}</p>
+          <small style="font-size: 10.5px; color: var(--text-dim);">{{ h.nombre }} · {{ h.created_at[:16] }}</small>
+        </div>
+        {% else %}
+        <p style="color: var(--text-muted); font-size: 13px;">Sin historial registrado aún.</p>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+</div>
 {% endblock %}
