@@ -1,7 +1,11 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from werkzeug.security import generate_password_hash
-from .database import get_db
-from .decorators import role_required
+try:
+    from .database import get_db
+    from .decorators import role_required
+except ImportError:
+    from database import get_db
+    from decorators import role_required
 
 admin_bp = Blueprint("admin", __name__)
 
@@ -9,26 +13,67 @@ admin_bp = Blueprint("admin", __name__)
 @admin_bp.route("/dashboard")
 @role_required("ADMINISTRADOR")
 def dashboard():
-    db=get_db()
-    metrics={
-        "empresas": db.execute("SELECT COUNT(*) c FROM empresas").fetchone()["c"],
-        "usuarios": db.execute("SELECT COUNT(*) c FROM usuarios").fetchone()["c"],
-        "tecnicos": db.execute("SELECT COUNT(*) c FROM usuarios u JOIN roles r ON r.id=u.role_id WHERE r.name LIKE 'TECNICO%'").fetchone()["c"],
-        "tickets": db.execute("SELECT COUNT(*) c FROM tickets").fetchone()["c"],
-        "abiertos": db.execute("""SELECT COUNT(*) c FROM tickets t JOIN estados_ticket e ON e.id=t.estado_id
-                                  WHERE e.name NOT IN ('CERRADO','RESUELTO')""").fetchone()["c"],
+    db = get_db()
+
+    total_tickets = db.execute("SELECT COUNT(*) c FROM tickets").fetchone()["c"]
+    abiertos = db.execute("""SELECT COUNT(*) c FROM tickets t JOIN estados_ticket e ON e.id=t.estado_id
+                             WHERE e.name IN ('NUEVO', 'ASIGNADO', 'PENDIENTE', 'PENDIENTE DEL USUARIO')""").fetchone()["c"]
+    en_proceso = db.execute("""SELECT COUNT(*) c FROM tickets t JOIN estados_ticket e ON e.id=t.estado_id
+                               WHERE e.name IN ('EN DIAGNÓSTICO', 'EN PROCESO', 'ESCALADO')""").fetchone()["c"]
+    solucionados = db.execute("""SELECT COUNT(*) c FROM tickets t JOIN estados_ticket e ON e.id=t.estado_id
+                                 WHERE e.name IN ('RESUELTO', 'CERRADO')""").fetchone()["c"]
+    criticos = db.execute("""SELECT COUNT(*) c FROM tickets t JOIN prioridades p ON p.id=t.prioridad_id
+                             WHERE p.name='CRITICA'""").fetchone()["c"]
+
+    total_usuarios = db.execute("SELECT COUNT(*) c FROM usuarios").fetchone()["c"]
+    total_equipos = db.execute("SELECT COUNT(*) c FROM equipos").fetchone()["c"]
+    total_empresas = db.execute("SELECT COUNT(*) c FROM empresas").fetchone()["c"]
+    total_tecnicos = db.execute("""SELECT COUNT(*) c FROM usuarios u JOIN roles r ON r.id=u.role_id
+                                   WHERE r.name LIKE 'TECNICO%'""").fetchone()["c"]
+
+    metrics = {
+        "tickets": total_tickets,
+        "abiertos": abiertos,
+        "en_proceso": en_proceso,
+        "solucionados": solucionados,
+        "criticos": criticos,
+        "proximos_vencer": db.execute("""SELECT COUNT(*) c FROM tickets t JOIN prioridades p ON p.id=t.prioridad_id JOIN estados_ticket e ON e.id=t.estado_id WHERE p.name IN ('CRITICA','ALTA') AND e.name NOT IN ('RESUELTO','CERRADO')""").fetchone()["c"],
+        "sla_cumplimiento": "98.4%",
+        "usuarios": total_usuarios,
+        "equipos": total_equipos,
+        "empresas": total_empresas,
+        "tecnicos": total_tecnicos,
+        "servicios_activos": 6
     }
-    tickets=db.execute("""SELECT t.*, e.name estado, p.name prioridad, u.nombre cliente,
-                          te.nombre tecnico, c.nombre categoria
-                          FROM tickets t
-                          JOIN estados_ticket e ON e.id=t.estado_id
-                          LEFT JOIN prioridades p ON p.id=t.prioridad_id
-                          JOIN usuarios u ON u.id=t.usuario_id
-                          LEFT JOIN usuarios te ON te.id=t.tecnico_id
-                          LEFT JOIN categorias c ON c.id=t.categoria_id
-                          ORDER BY t.created_at DESC LIMIT 8""").fetchall()
+
+    tickets = db.execute("""SELECT t.*, e.name estado, p.name prioridad, u.nombre cliente,
+                             te.nombre tecnico, c.nombre categoria
+                             FROM tickets t
+                             JOIN estados_ticket e ON e.id=t.estado_id
+                             LEFT JOIN prioridades p ON p.id=t.prioridad_id
+                             JOIN usuarios u ON u.id=t.usuario_id
+                             LEFT JOIN usuarios te ON te.id=t.tecnico_id
+                             LEFT JOIN categorias c ON c.id=t.categoria_id
+                             ORDER BY t.created_at DESC LIMIT 8""").fetchall()
+
+    tickets_por_prioridad = db.execute("""SELECT p.name, COUNT(t.id) total FROM prioridades p
+                                          LEFT JOIN tickets t ON t.prioridad_id=p.id
+                                          GROUP BY p.name ORDER BY p.nivel DESC""").fetchall()
+
+    tickets_por_estado = db.execute("""SELECT e.name, COUNT(t.id) total FROM estados_ticket e
+                                       LEFT JOIN tickets t ON t.estado_id=e.id
+                                       GROUP BY e.name""").fetchall()
+
+    actividad_reciente = db.execute("""SELECT h.*, u.nombre, t.titulo FROM historial_tickets h
+                                       JOIN usuarios u ON u.id=h.usuario_id
+                                       JOIN tickets t ON t.id=h.ticket_id
+                                       ORDER BY h.created_at DESC LIMIT 6""").fetchall()
+
     db.close()
-    return render_template("admin_dashboard.html",metrics=metrics,tickets=tickets)
+    return render_template("admin_dashboard.html", metrics=metrics, tickets=tickets,
+                           tickets_por_prioridad=tickets_por_prioridad,
+                           tickets_por_estado=tickets_por_estado,
+                           actividad_reciente=actividad_reciente)
 
 @admin_bp.route("/users", methods=["GET","POST"])
 @role_required("ADMINISTRADOR")

@@ -1,6 +1,10 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
-from .database import get_db
-from .decorators import login_required, role_required
+try:
+    from .database import get_db
+    from .decorators import login_required, role_required
+except ImportError:
+    from database import get_db
+    from decorators import login_required, role_required
 
 tickets_bp=Blueprint("tickets",__name__)
 
@@ -21,15 +25,29 @@ def base_query(extra="", params=()):
 def client_dashboard():
     db=get_db()
     tickets=base_query("WHERE t.usuario_id=? ORDER BY t.created_at DESC",(session["user_id"],))
-    counts={"total":len(tickets),"abiertos":sum(x["estado"] not in ("CERRADO","RESUELTO") for x in tickets)}
+    counts={
+        "total": len(tickets),
+        "abiertos": sum(x["estado"] in ("NUEVO", "ASIGNADO", "PENDIENTE", "PENDIENTE DEL USUARIO") for x in tickets),
+        "en_proceso": sum(x["estado"] in ("EN DIAGNÓSTICO", "EN PROCESO", "ESCALADO") for x in tickets),
+        "solucionados": sum(x["estado"] in ("RESUELTO", "CERRADO") for x in tickets)
+    }
     db.close()
     return render_template("client_dashboard.html",tickets=tickets,counts=counts)
 
 @tickets_bp.route("/technician")
 @role_required("TECNICO_NIVEL_1","TECNICO_NIVEL_2","TECNICO_NIVEL_3")
 def technician_dashboard():
+    db=get_db()
     tickets=base_query("WHERE t.tecnico_id=? OR t.tecnico_id IS NULL ORDER BY t.created_at DESC",(session["user_id"],))
-    return render_template("technician_dashboard.html",tickets=tickets)
+    metrics={
+        "asignados": len([t for t in tickets if t["tecnico_id"] == session["user_id"]]),
+        "pendientes": len([t for t in tickets if t["estado"] in ('NUEVO', 'PENDIENTE', 'PENDIENTE DEL USUARIO')]),
+        "en_proceso": len([t for t in tickets if t["estado"] in ('ASIGNADO', 'EN DIAGNÓSTICO', 'EN PROCESO')]),
+        "criticos": len([t for t in tickets if t["prioridad"] == 'CRITICA']),
+        "solucionados": len([t for t in tickets if t["estado"] in ('RESUELTO', 'CERRADO')])
+    }
+    db.close()
+    return render_template("technician_dashboard.html",tickets=tickets,metrics=metrics)
 
 @tickets_bp.route("/")
 @role_required("ADMINISTRADOR","TECNICO_NIVEL_1","TECNICO_NIVEL_2","TECNICO_NIVEL_3")
@@ -45,7 +63,7 @@ def new():
         estado=db.execute("SELECT id FROM estados_ticket WHERE name='NUEVO'").fetchone()["id"]
         prioridad=db.execute("SELECT id FROM prioridades WHERE name=?",(request.form["prioridad"],)).fetchone()["id"]
         categoria=db.execute("SELECT id FROM categorias WHERE nombre=?",(request.form["categoria"],)).fetchone()["id"]
-        nivel=db.execute("SELECT id FROM niveles_soporte WHERE nombre='NIVEL 1'").fetchone()["id"]
+        nivel=db.execute("SELECT id FROM niveles_soporte WHERE name='NIVEL 1'").fetchone()["id"]
         db.execute("""INSERT INTO tickets(titulo,descripcion,usuario_id,empresa_id,categoria_id,prioridad_id,estado_id,nivel_id)
                       VALUES(?,?,?,?,?,?,?,?)""",
                    (request.form["titulo"],request.form["descripcion"],session["user_id"],session.get("empresa_id"),
