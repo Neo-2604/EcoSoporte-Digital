@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Módulo Soporte TI - EcoSoporte Digital{% endblock %}
+
+{% block content %}
+<div class="heading">
+  <div>
+    <span class="eyebrow">MÓDULO TÉCNICO</span>
+    <h1>Centro de Control Soporte TI</h1>
+    <p>Gestión operativa de tickets, técnicos, equipos e infraestructura.</p>
+  </div>
+</div>
+
+<div class="metrics">
+  <div class="metric"><small>Asignados / Propios</small><strong>{{ metrics.asignados }}</strong></div>
+  <div class="metric"><small>Pendientes</small><strong>{{ metrics.pendientes }}</strong></div>
+  <div class="metric"><small>En proceso</small><strong>{{ metrics.en_proceso }}</strong></div>
+  <div class="metric"><small>Críticos</small><strong style="color: var(--danger-color, #e53e3e);">{{ metrics.criticos }}</strong></div>
+  <div class="metric"><small>Solucionados</small><strong style="color: var(--success-color, #059669);">{{ metrics.solucionados }}</strong></div>
+</div>
+
+<section class="panel" style="margin-bottom: 2rem;">
+  <form method="get" class="filters-form" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; padding: 1rem; background: var(--bg-hover, #f8fafc); border-radius: 0.5rem;">
+    <div>
+      <label style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.25rem;">Prioridad:</label>
+      <select name="prioridad" class="input-select" style="padding: 0.4rem 0.8rem; border-radius: 0.375rem; border: 1px solid var(--border-color, #cbd5e1);">
+        <option value="">Todas</option>
+        {% for p in ['CRITICA', 'ALTA', 'MEDIA', 'BAJA'] %}
+        <option value="{{p}}" {% if request.args.get('prioridad') == p %}selected{% endif %}>{{p}}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.25rem;">Estado:</label>
+      <select name="estado" class="input-select" style="padding: 0.4rem 0.8rem; border-radius: 0.375rem; border: 1px solid var(--border-color, #cbd5e1);">
+        <option value="">Todos</option>
+        {% for e in ['NUEVO', 'ASIGNADO', 'EN DIAGNÓSTICO', 'EN PROCESO', 'PENDIENTE', 'RESUELTO', 'CERRADO'] %}
+        <option value="{{e}}" {% if request.args.get('estado') == e %}selected{% endif %}>{{e}}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label style="font-size: 0.85rem; font-weight: 600; display: block; margin-bottom: 0.25rem;">Técnico:</label>
+      <input type="text" name="tecnico" value="{{ request.args.get('tecnico', '') }}" placeholder="Nombre del técnico" style="padding: 0.4rem 0.8rem; border-radius: 0.375rem; border: 1px solid var(--border-color, #cbd5e1);">
+    </div>
+    <div style="margin-top: auto;">
+      <button class="btn primary" type="submit">Filtrar</button>
+      <a href="{{ url_for('main.soporte_ti') }}" class="btn" style="text-decoration: none;">Limpiar</a>
+    </div>
+  </form>
+</section>
+
+<section class="panel">
+  <div class="panel-title" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+    <h2>Solicitudes de Soporte TI</h2>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Solicitud</th>
+          <th>Cliente</th>
+          <th>Técnico</th>
+          <th>Nivel</th>
+          <th>Prioridad</th>
+          <th>Estado</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in tickets %}
+        <tr>
+          <td>#{{t.id}}</td>
+          <td><b>{{t.titulo}}</b><br><small style="color: #64748b;">{{t.categoria or 'General'}}</small></td>
+          <td>{{t.cliente}}</td>
+          <td>{{t.tecnico or 'Sin Asignar'}}</td>
+          <td>{{t.nivel or 'Nivel 1'}}</td>
+          <td><span class="badge priority-{{(t.prioridad or 'baja')|lower}}">{{t.prioridad or 'BAJA'}}</span></td>
+          <td><span class="badge">{{t.estado}}</span></td>
+          <td><a class="btn small primary" href="{{url_for('tickets.detail', ticket_id=t.id)}}">Atender</a></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="empty" style="text-align: center; padding: 2rem;">No se encontraron tickets con los filtros seleccionados.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

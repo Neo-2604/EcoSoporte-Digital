@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Base de Conocimiento - EcoSoporte Digital{% endblock %}
+{% block content %}
+<div class="heading">
+  <div>
+    <span class="eyebrow">AUTOAYUDA</span>
+    <h1>Base de Conocimiento & Preguntas Frecuentes</h1>
+    <p>Encuentra soluciones rápidas y artículos explicativos.</p>
+  </div>
+</div>
+
+<div class="cards-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+  {% for art in articulos %}
+  <div class="card" style="background: var(--bg-card, #ffffff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 0.75rem; padding: 1.5rem;">
+    <div style="font-size: 2rem; margin-bottom: 0.5rem;">{{art.icono}}</div>
+    <span class="badge" style="margin-bottom: 0.5rem; display: inline-block;">{{art.categoria}}</span>
+    <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem;">{{art.titulo}}</h3>
+    <p style="color: #64748b; font-size: 0.9rem; line-height: 1.5;">{{art.extracto}}</p>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
