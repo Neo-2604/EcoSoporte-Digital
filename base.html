@@ -24,13 +24,13 @@
     </div>
 
     <nav class="sidebar-nav">
-      <a href="{{ url_for('main.dashboard') }}" class="nav-item {% if request.endpoint == 'admin.dashboard' or request.endpoint == 'main.dashboard' %}active{% endif %}">
+      <a href="{{ url_for('main.dashboard') }}" class="nav-item {% if request.endpoint in ['admin.dashboard', 'main.dashboard'] %}active{% endif %}">
         <span class="nav-icon">🏠</span>
         <span class="nav-text">Inicio</span>
       </a>
 
-      {% if session.get('role') in ['ADMINISTRADOR', 'TECNICO_NIVEL_1', 'TECNICO_NIVEL_2', 'TECNICO_NIVEL_3'] %}
-      <a href="{{ url_for('tickets.index') }}" class="nav-item {% if request.endpoint in ['tickets.index', 'tickets.detail'] %}active{% endif %}">
+      {% if session.get('role') == 'ADMINISTRADOR' %}
+      <a href="{{ url_for('main.solicitudes') }}" class="nav-item {% if request.endpoint in ['tickets.index', 'tickets.detail'] %}active{% endif %}">
         <span class="nav-icon">🎫</span>
         <span class="nav-text">Solicitudes</span>
       </a>
@@ -38,50 +38,83 @@
         <span class="nav-icon">🛠️</span>
         <span class="nav-text">Soporte TI</span>
       </a>
-      {% else %}
-      <a href="{{ url_for('tickets.client_dashboard') }}" class="nav-item {% if request.endpoint in ['tickets.client_dashboard', 'tickets.detail', 'tickets.new'] %}active{% endif %}">
-        <span class="nav-icon">🎫</span>
-        <span class="nav-text">Solicitudes</span>
-      </a>
-      {% endif %}
-
       <a href="{{ url_for('main.equipos') }}" class="nav-item {% if request.endpoint == 'main.equipos' %}active{% endif %}">
         <span class="nav-icon">💻</span>
         <span class="nav-text">Equipos</span>
       </a>
-
-      {% if session.get('role') == 'ADMINISTRADOR' %}
-      <a href="{{ url_for('admin.users') }}" class="nav-item {% if request.endpoint == 'admin.users' %}active{% endif %}">
+      <a href="{{ url_for('main.usuarios') }}" class="nav-item {% if request.endpoint == 'admin.users' %}active{% endif %}">
         <span class="nav-icon">👥</span>
         <span class="nav-text">Usuarios</span>
       </a>
-      {% endif %}
-
       <a href="{{ url_for('main.servicios') }}" class="nav-item {% if request.endpoint == 'main.servicios' %}active{% endif %}">
         <span class="nav-icon">⚙️</span>
         <span class="nav-text">Servicios</span>
       </a>
-
-      {% if session.get('role') in ['ADMINISTRADOR', 'TECNICO_NIVEL_1', 'TECNICO_NIVEL_2', 'TECNICO_NIVEL_3'] %}
       <a href="{{ url_for('main.reportes') }}" class="nav-item {% if request.endpoint == 'main.reportes' %}active{% endif %}">
         <span class="nav-icon">📊</span>
         <span class="nav-text">Reportes</span>
       </a>
-      {% endif %}
-
       <a href="{{ url_for('main.ans_sla') }}" class="nav-item {% if request.endpoint == 'main.ans_sla' %}active{% endif %}">
         <span class="nav-icon">⏱️</span>
         <span class="nav-text">ANS / SLA</span>
       </a>
+      <a href="{{ url_for('main.base_conocimiento') }}" class="nav-item {% if request.endpoint == 'main.base_conocimiento' %}active{% endif %}">
+        <span class="nav-icon">📚</span>
+        <span class="nav-text">Base de conocimiento</span>
+      </a>
+      <a href="{{ url_for('main.configuracion') }}" class="nav-item {% if request.endpoint == 'main.configuracion' %}active{% endif %}">
+        <span class="nav-icon">🔧</span>
+        <span class="nav-text">Configuración</span>
+      </a>
 
+      {% elif session.get('role','').startswith('TECNICO') %}
+      <a href="{{ url_for('main.solicitudes') }}" class="nav-item {% if request.endpoint in ['tickets.index', 'tickets.detail'] %}active{% endif %}">
+        <span class="nav-icon">🎫</span>
+        <span class="nav-text">Solicitudes asignadas</span>
+      </a>
+      <a href="{{ url_for('main.soporte_ti') }}" class="nav-item {% if request.endpoint == 'main.soporte_ti' %}active{% endif %}">
+        <span class="nav-icon">🛠️</span>
+        <span class="nav-text">Soporte TI</span>
+      </a>
+      <a href="{{ url_for('main.equipos') }}" class="nav-item {% if request.endpoint == 'main.equipos' %}active{% endif %}">
+        <span class="nav-icon">💻</span>
+        <span class="nav-text">Equipos</span>
+      </a>
+      <a href="{{ url_for('main.servicios') }}" class="nav-item {% if request.endpoint == 'main.servicios' %}active{% endif %}">
+        <span class="nav-icon">⚙️</span>
+        <span class="nav-text">Servicios</span>
+      </a>
+      <a href="{{ url_for('main.ans_sla') }}" class="nav-item {% if request.endpoint == 'main.ans_sla' %}active{% endif %}">
+        <span class="nav-icon">⏱️</span>
+        <span class="nav-text">ANS / SLA</span>
+      </a>
       <a href="{{ url_for('main.base_conocimiento') }}" class="nav-item {% if request.endpoint == 'main.base_conocimiento' %}active{% endif %}">
         <span class="nav-icon">📚</span>
         <span class="nav-text">Base de conocimiento</span>
       </a>
 
-      <a href="{{ url_for('main.configuracion') }}" class="nav-item {% if request.endpoint == 'main.configuracion' %}active{% endif %}">
-        <span class="nav-icon">🔧</span>
-        <span class="nav-text">Configuración</span>
+      {% else %}
+      <a href="{{ url_for('tickets.new') }}" class="nav-item {% if request.endpoint == 'tickets.new' %}active{% endif %}">
+        <span class="nav-icon">➕</span>
+        <span class="nav-text">Crear solicitud</span>
+      </a>
+      <a href="{{ url_for('tickets.client_dashboard') }}" class="nav-item {% if request.endpoint in ['tickets.client_dashboard', 'tickets.detail'] %}active{% endif %}">
+        <span class="nav-icon">🎫</span>
+        <span class="nav-text">Mis solicitudes</span>
+      </a>
+      <a href="{{ url_for('main.servicios') }}" class="nav-item {% if request.endpoint == 'main.servicios' %}active{% endif %}">
+        <span class="nav-icon">⚙️</span>
+        <span class="nav-text">Servicios</span>
+      </a>
+      <a href="{{ url_for('main.base_conocimiento') }}" class="nav-item {% if request.endpoint == 'main.base_conocimiento' %}active{% endif %}">
+        <span class="nav-icon">📚</span>
+        <span class="nav-text">Base de conocimiento</span>
+      </a>
+      {% endif %}
+
+      <a href="{{ url_for('main.perfil') }}" class="nav-item {% if request.endpoint == 'main.perfil' %}active{% endif %}">
+        <span class="nav-icon">👤</span>
+        <span class="nav-text">Mi perfil</span>
       </a>
 
       <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid #334155;">

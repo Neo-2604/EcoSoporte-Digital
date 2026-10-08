@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, session, redirect, url_for, request, flash
+from werkzeug.security import generate_password_hash, check_password_hash
 try:
     from .database import get_db
     from .decorators import login_required, role_required
@@ -12,6 +13,7 @@ main_bp = Blueprint("main", __name__)
 def home():
     return render_template("index.html")
 
+@main_bp.route("/inicio")
 @main_bp.route("/dashboard")
 @login_required
 def dashboard():
@@ -21,6 +23,14 @@ def dashboard():
     if role and role.startswith("TECNICO"):
         return redirect(url_for("main.soporte_ti"))
     return redirect(url_for("tickets.client_dashboard"))
+
+@main_bp.route("/solicitudes")
+@login_required
+def solicitudes():
+    role = session.get("role")
+    if role == "CLIENTE":
+        return redirect(url_for("tickets.client_dashboard"))
+    return redirect(url_for("tickets.index"))
 
 @main_bp.route("/soporte-ti")
 @role_required("ADMINISTRADOR", "TECNICO_NIVEL_1", "TECNICO_NIVEL_2", "TECNICO_NIVEL_3")
@@ -106,6 +116,11 @@ def equipos():
     db.close()
     return render_template("equipos.html", equipos=equipos)
 
+@main_bp.route("/usuarios")
+@role_required("ADMINISTRADOR")
+def usuarios():
+    return redirect(url_for("admin.users"))
+
 @main_bp.route("/servicios")
 @login_required
 def servicios():
@@ -134,6 +149,7 @@ def reportes():
     db.close()
     return render_template("reportes.html", total_tickets=total_tickets, resueltos=resueltos, por_categoria=por_categoria, por_prioridad=por_prioridad)
 
+@main_bp.route("/ans")
 @main_bp.route("/ans-sla")
 @login_required
 def ans_sla():
@@ -155,6 +171,37 @@ def base_conocimiento():
         {"id": 4, "titulo": "Mantenimiento sostenible para alargar la vida de tu equipo", "categoria": "EcoSoporte", "extracto": "Guía práctica para optimizar batería, temperatura y almacenamiento.", "icono": "🌱"}
     ]
     return render_template("base_conocimiento.html", articulos=articulos)
+
+@main_bp.route("/perfil", methods=["GET", "POST"])
+@login_required
+def perfil():
+    db = get_db()
+    user_id = session.get("user_id")
+    if request.method == "POST":
+        nombre = request.form.get("nombre", "").strip()
+        current_password = request.form.get("current_password", "")
+        new_password = request.form.get("new_password", "")
+
+        user = db.execute("SELECT * FROM usuarios WHERE id = ?", (user_id,)).fetchone()
+        if nombre:
+            db.execute("UPDATE usuarios SET nombre = ? WHERE id = ?", (nombre, user_id))
+            session["name"] = nombre
+            flash("Nombre actualizado correctamente.", "success")
+
+        if current_password and new_password:
+            if check_password_hash(user["password_hash"], current_password):
+                db.execute("UPDATE usuarios SET password_hash = ? WHERE id = ?", (generate_password_hash(new_password), user_id))
+                flash("Contraseña actualizada exitosamente.", "success")
+            else:
+                flash("La contraseña actual es incorrecta.", "danger")
+        db.commit()
+
+    usuario = db.execute("""SELECT u.*, r.name role, e.nombre empresa FROM usuarios u
+                            JOIN roles r ON r.id = u.role_id
+                            LEFT JOIN empresas e ON e.id = u.empresa_id
+                            WHERE u.id = ?""", (user_id,)).fetchone()
+    db.close()
+    return render_template("perfil.html", usuario=usuario)
 
 @main_bp.route("/configuracion")
 @login_required

@@ -173,7 +173,6 @@ def get_db():
 def init_db(app):
     with app.app_context():
         db = get_db()
-        # Handle migration for existing DB files that used 'nombre' instead of 'name'
         tables = [r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
         if 'prioridades' in tables:
             cols = [r[1] for r in db.execute("PRAGMA table_info(prioridades)").fetchall()]
@@ -205,12 +204,20 @@ def seed_db(app):
             db.execute("INSERT OR IGNORE INTO categorias(nombre) VALUES (?)",(name,))
         for name in ["NIVEL 1","NIVEL 2","NIVEL 3"]:
             db.execute("INSERT OR IGNORE INTO niveles_soporte(name) VALUES (?)",(name,))
-        admin_email = os.getenv("ADMIN_EMAIL","admin@ecosoportedigital.com")
-        admin_password = os.getenv("ADMIN_PASSWORD","EcoSoporteAdmin2026!")
-        role = db.execute("SELECT id FROM roles WHERE name='ADMINISTRADOR'").fetchone()
-        exists = db.execute("SELECT id FROM usuarios WHERE email=?", (admin_email,)).fetchone()
-        if not exists:
-            db.execute("INSERT INTO usuarios(nombre,email,password_hash,role_id) VALUES (?,?,?,?)",
-                       ("Administrador",admin_email,generate_password_hash(admin_password),role["id"]))
+
+        users_to_seed = [
+            ("Administrador", "admin@ecosoporte.com", "EcoSoporte2026!", "ADMINISTRADOR"),
+            ("Administrador Secundario", "admin@ecosoportedigital.com", "EcoSoporteAdmin2026!", "ADMINISTRADOR"),
+            ("Soporte TI", "soporte@ecosoporte.com", "Soporte2026!", "TECNICO_NIVEL_1"),
+            ("Usuario", "usuario@ecosoporte.com", "Usuario2026!", "CLIENTE")
+        ]
+
+        for nombre, email, password, role_name in users_to_seed:
+            role = db.execute("SELECT id FROM roles WHERE name=?", (role_name,)).fetchone()
+            exists = db.execute("SELECT id FROM usuarios WHERE email=?", (email,)).fetchone()
+            if not exists and role:
+                db.execute("INSERT INTO usuarios(nombre,email,password_hash,role_id) VALUES (?,?,?,?)",
+                           (nombre, email, generate_password_hash(password), role["id"]))
+
         db.commit()
         db.close()

@@ -9,8 +9,11 @@
       <div>
         <img src="{{ url_for('static', filename='img/logo.png') }}" alt="EcoSoporte Digital Official Logo" class="auth-logo">
         <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.75rem;">EcoSoporte Digital</h2>
-        <p style="font-size: 0.95rem; line-height: 1.6; opacity: 0.9;">
-          Plataforma empresarial de gestión inteligente de soporte TI, mesas de ayuda y mantenimiento tecnológico sostenible.
+        <p style="font-size: 0.95rem; line-height: 1.6; opacity: 0.9; margin-bottom: 1.5rem;">
+          "Tecnología que impulsa tu empresa y cuida el planeta"
+        </p>
+        <p style="font-size: 0.875rem; line-height: 1.5; opacity: 0.8;">
+          Plataforma empresarial de gestión inteligente de soporte TI, mesas de ayuda, conectividad y mantenimiento tecnológico sostenible.
         </p>
       </div>
       <div style="font-size: 0.825rem; opacity: 0.8; margin-top: 2rem;">
@@ -20,11 +23,11 @@
 
     <div class="auth-form-container">
       <div style="margin-bottom: 1.5rem;">
-        <h1 style="font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-bottom: 0.25rem;">Bienvenido</h1>
-        <p style="color: #64748b; font-size: 0.9rem;">Ingresa tus credenciales para acceder al sistema.</p>
+        <h1 style="font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-bottom: 0.25rem;">Bienvenido a EcoSoporte Digital</h1>
+        <p style="color: #64748b; font-size: 0.9rem;">Ingresa tus credenciales para acceder a la plataforma.</p>
       </div>
 
-      <form method="post" style="display: flex; flex-direction: column; gap: 1.25rem;">
+      <form method="post" id="login-form" style="display: flex; flex-direction: column; gap: 1.25rem;">
         <div>
           <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.35rem;">Correo electrónico</label>
           <input type="email" name="email" required placeholder="tu.correo@empresa.com" style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-size: 0.95rem; outline: none; transition: border-color 0.2s;">
@@ -32,14 +35,43 @@
 
         <div>
           <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.35rem;">Contraseña</label>
-          <input type="password" name="password" required placeholder="••••••••" style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-size: 0.95rem; outline: none; transition: border-color 0.2s;">
+          <div style="position: relative; display: flex; align-items: center;">
+            <input type="password" id="password-field" name="password" required placeholder="••••••••" style="width: 100%; padding: 0.75rem 2.5rem 0.75rem 1rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-size: 0.95rem; outline: none; transition: border-color 0.2s;">
+            <button type="button" id="toggle-password-btn" style="position: absolute; right: 0.75rem; background: transparent; border: none; cursor: pointer; font-size: 1.1rem; color: #64748b;" title="Mostrar/Ocultar contraseña">👁️</button>
+          </div>
         </div>
 
-        <button type="submit" class="btn primary" style="width: 100%; padding: 0.85rem; font-size: 1rem; font-weight: 700; margin-top: 0.5rem;">
-          Iniciar Sesión →
+        <button type="submit" id="submit-btn" class="btn primary" style="width: 100%; padding: 0.85rem; font-size: 1rem; font-weight: 700; margin-top: 0.5rem;">
+          <span id="btn-text">Iniciar Sesión →</span>
+          <span id="btn-spinner" style="display: none;">Validando... ⏳</span>
         </button>
       </form>
     </div>
   </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const toggleBtn = document.getElementById('toggle-password-btn');
+    const pwdInput = document.getElementById('password-field');
+    const form = document.getElementById('login-form');
+    const btnText = document.getElementById('btn-text');
+    const btnSpinner = document.getElementById('btn-spinner');
+
+    if (toggleBtn && pwdInput) {
+      toggleBtn.addEventListener('click', () => {
+        const isPassword = pwdInput.type === 'password';
+        pwdInput.type = isPassword ? 'text' : 'password';
+        toggleBtn.textContent = isPassword ? '🙈' : '👁️';
+      });
+    }
+
+    if (form) {
+      form.addEventListener('submit', () => {
+        btnText.style.display = 'none';
+        btnSpinner.style.display = 'inline';
+      });
+    }
+  });
+</script>
 {% endblock %}
