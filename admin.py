@@ -31,6 +31,11 @@ def dashboard():
     total_tecnicos = db.execute("""SELECT COUNT(*) c FROM usuarios u JOIN roles r ON r.id=u.role_id
                                    WHERE r.name LIKE 'TECNICO%'""").fetchone()["c"]
 
+    if total_tickets > 0:
+        sla_cumplimiento = f"{round((solucionados / total_tickets) * 100, 1)}%"
+    else:
+        sla_cumplimiento = "—"
+
     metrics = {
         "tickets": total_tickets,
         "abiertos": abiertos,
@@ -38,7 +43,7 @@ def dashboard():
         "solucionados": solucionados,
         "criticos": criticos,
         "proximos_vencer": db.execute("""SELECT COUNT(*) c FROM tickets t JOIN prioridades p ON p.id=t.prioridad_id JOIN estados_ticket e ON e.id=t.estado_id WHERE p.name IN ('CRITICA','ALTA') AND e.name NOT IN ('RESUELTO','CERRADO')""").fetchone()["c"],
-        "sla_cumplimiento": "98.4%",
+        "sla_cumplimiento": sla_cumplimiento,
         "usuarios": total_usuarios,
         "equipos": total_equipos,
         "empresas": total_empresas,
