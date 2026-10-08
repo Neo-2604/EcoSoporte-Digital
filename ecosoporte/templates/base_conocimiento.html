@@ -12,9 +12,12 @@
 </div>
 
 <div class="panel-card" style="margin-bottom: 24px;">
-  <form method="get" action="{{ url_for('main.base_conocimiento') }}" style="display: flex; gap: 12px;">
-    <input type="text" name="q" value="{{ search_query }}" class="form-control" placeholder="Buscar artículos por palabra clave, error o tema (ej. WiFi, Redes, Correo)...">
-    <button type="submit" class="btn btn-primary">Buscar</button>
+  <form method="get" action="{{ url_for('main.base_conocimiento') }}" style="display: flex; gap: 12px; align-items: center;">
+    <input type="text" name="q" value="{{ search_query or '' }}" class="form-control" placeholder="Buscar artículos por palabra clave, error o tema (ej. WiFi, Redes, Correo)...">
+    <button type="submit" class="btn btn-primary">🔍 Buscar</button>
+    {% if search_query %}
+    <a href="{{ url_for('main.base_conocimiento') }}" class="btn btn-secondary">Limpiar</a>
+    {% endif %}
   </form>
 </div>
 
@@ -34,8 +37,12 @@
     </div>
   </div>
   {% else %}
-  <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-muted);">
-    No se encontraron artículos con la consulta realizada.
+  <div class="panel-card" style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-muted);">
+    {% if search_query %}
+    No se encontraron artículos con la consulta "{{ search_query }}".
+    {% else %}
+    No hay artículos registrados en la base de conocimiento.
+    {% endif %}
   </div>
   {% endfor %}
 </div>

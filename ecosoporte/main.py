@@ -157,35 +157,62 @@ def equipos():
             flash("Equipo registrado correctamente.", "success")
             return redirect(url_for("main.equipos"))
 
+    query_str = request.args.get("q", "").strip()
     role = session.get("role", "")
-    if role == "ADMINISTRADOR" or role == "SOPORTE TI" or role.startswith("TECNICO"):
-        equipos_list = db.execute("""
-            SELECT eq.*, u.nombre usuario_nombre, emp.nombre empresa_nombre
-            FROM equipos eq
-            LEFT JOIN usuarios u ON u.id=eq.usuario_id
-            LEFT JOIN empresas emp ON emp.id=eq.empresa_id
-            ORDER BY eq.id DESC
-        """).fetchall()
-    else:
-        equipos_list = db.execute("""
-            SELECT eq.*, u.nombre usuario_nombre, emp.nombre empresa_nombre
-            FROM equipos eq
-            LEFT JOIN usuarios u ON u.id=eq.usuario_id
-            LEFT JOIN empresas emp ON emp.id=eq.empresa_id
-            WHERE eq.usuario_id=? OR eq.empresa_id=?
-            ORDER BY eq.id DESC
-        """, (session.get("user_id"), session.get("empresa_id"))).fetchall()
 
+    where_clauses = []
+    params = []
+
+    if not (role == "ADMINISTRADOR" or role == "SOPORTE TI" or role.startswith("TECNICO")):
+        where_clauses.append("(eq.usuario_id=? OR eq.empresa_id=?)")
+        params.extend([session.get("user_id"), session.get("empresa_id")])
+
+    if query_str:
+        pattern = f"%{query_str}%"
+        where_clauses.append("""(
+            eq.nombre LIKE ? OR
+            eq.tipo LIKE ? OR
+            eq.marca LIKE ? OR
+            eq.modelo LIKE ? OR
+            eq.serial LIKE ? OR
+            eq.sistema_operativo LIKE ? OR
+            u.nombre LIKE ? OR
+            emp.nombre LIKE ?
+        )""")
+        params.extend([pattern] * 8)
+
+    where_sql = ""
+    if where_clauses:
+        where_sql = "WHERE " + " AND ".join(where_clauses)
+
+    query = f"""
+        SELECT eq.*, u.nombre usuario_nombre, emp.nombre empresa_nombre
+        FROM equipos eq
+        LEFT JOIN usuarios u ON u.id=eq.usuario_id
+        LEFT JOIN empresas emp ON emp.id=eq.empresa_id
+        {where_sql}
+        ORDER BY eq.id DESC
+    """
+    equipos_list = db.execute(query, tuple(params)).fetchall()
     db.close()
-    return render_template("equipos.html", equipos=equipos_list)
+    return render_template("equipos.html", equipos=equipos_list, search_query=query_str)
 
 @main_bp.route("/servicios")
 @login_required
 def servicios():
     db = get_db()
-    servicios_list = db.execute("SELECT * FROM servicios WHERE estado='ACTIVO'").fetchall()
+    query_str = request.args.get("q", "").strip()
+    if query_str:
+        pattern = f"%{query_str}%"
+        servicios_list = db.execute("""
+            SELECT * FROM servicios
+            WHERE estado='ACTIVO' AND (nombre LIKE ? OR categoria LIKE ? OR descripcion LIKE ?)
+            ORDER BY id ASC
+        """, (pattern, pattern, pattern)).fetchall()
+    else:
+        servicios_list = db.execute("SELECT * FROM servicios WHERE estado='ACTIVO' ORDER BY id ASC").fetchall()
     db.close()
-    return render_template("servicios.html", servicios=servicios_list)
+    return render_template("servicios.html", servicios=servicios_list, search_query=query_str)
 
 @main_bp.route("/reportes")
 @role_required("ADMINISTRADOR")
@@ -231,13 +258,14 @@ def base_conocimiento():
     db = get_db()
     query = request.args.get("q", "").strip()
     if query:
+        pattern = f"%{query}%"
         articles = db.execute("""
             SELECT kb.*, u.nombre autor
             FROM base_conocimiento kb
             LEFT JOIN usuarios u ON u.id=kb.autor_id
-            WHERE kb.titulo LIKE ? OR kb.contenido LIKE ? OR kb.categoria LIKE ?
+            WHERE kb.titulo LIKE ? OR kb.contenido LIKE ? OR kb.categoria LIKE ? OR u.nombre LIKE ?
             ORDER BY kb.id DESC
-        """, (f"%{query}%", f"%{query}%", f"%{query}%")).fetchall()
+        """, (pattern, pattern, pattern, pattern)).fetchall()
     else:
         articles = db.execute("""
             SELECT kb.*, u.nombre autor

@@ -34,15 +34,44 @@ def technician_dashboard():
 def index():
     role = session.get("role", "")
     user_id = session.get("user_id")
+    query_str = request.args.get("q", "").strip()
+
+    where_clauses = []
+    params = []
 
     if role == "ADMINISTRADOR":
-        tickets = base_query("ORDER BY t.created_at DESC")
+        pass
     elif role == "SOPORTE TI" or role.startswith("TECNICO"):
-        tickets = base_query("WHERE t.tecnico_id=? OR t.tecnico_id IS NULL ORDER BY t.created_at DESC", (user_id,))
+        where_clauses.append("(t.tecnico_id=? OR t.tecnico_id IS NULL)")
+        params.append(user_id)
     else: # USUARIO / CLIENTE
-        tickets = base_query("WHERE t.usuario_id=? ORDER BY t.created_at DESC", (user_id,))
+        where_clauses.append("t.usuario_id=?")
+        params.append(user_id)
 
-    return render_template("tickets.html", tickets=tickets)
+    if query_str:
+        clean_q = query_str.lstrip("#")
+        search_pattern = f"%{clean_q}%"
+        search_clause = """(
+            CAST(t.id AS TEXT) LIKE ? OR
+            t.titulo LIKE ? OR
+            t.descripcion LIKE ? OR
+            u.nombre LIKE ? OR
+            te.nombre LIKE ? OR
+            c.nombre LIKE ? OR
+            p.name LIKE ? OR
+            e.name LIKE ?
+        )"""
+        where_clauses.append(search_clause)
+        params.extend([search_pattern] * 8)
+
+    where_sql = ""
+    if where_clauses:
+        where_sql = "WHERE " + " AND ".join(where_clauses)
+
+    extra_sql = f"{where_sql} ORDER BY t.created_at DESC"
+    tickets = base_query(extra_sql, tuple(params))
+
+    return render_template("tickets.html", tickets=tickets, search_query=query_str)
 
 @tickets_bp.route("/new", methods=["GET", "POST"])
 @login_required
@@ -106,7 +135,6 @@ def detail(ticket_id):
         flash("El ticket solicitado no existe.", "danger")
         return redirect(url_for("tickets.index"))
 
-    # Permission check for ticket details
     role = session.get("role", "")
     user_id = session.get("user_id")
     if role not in ("ADMINISTRADOR", "SOPORTE TI") and not role.startswith("TECNICO"):

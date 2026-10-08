@@ -14,6 +14,16 @@
   </div>
 </div>
 
+<div class="panel-card" style="margin-bottom: 24px;">
+  <form method="get" action="{{ url_for('tickets.index') }}" style="display: flex; gap: 12px; align-items: center;">
+    <input type="text" name="q" value="{{ search_query or '' }}" class="form-control" placeholder="Buscar por ID (#), título, cliente, técnico, categoría, prioridad o estado...">
+    <button type="submit" class="btn btn-primary">🔍 Buscar</button>
+    {% if search_query %}
+    <a href="{{ url_for('tickets.index') }}" class="btn btn-secondary">Limpiar</a>
+    {% endif %}
+  </form>
+</div>
+
 <section class="panel-card">
   <div class="table-responsive">
     <table class="data-table">
@@ -50,7 +60,11 @@
         {% else %}
         <tr>
           <td colspan="8" style="text-align: center; color: var(--text-muted); padding: 30px;">
+            {% if search_query %}
+            No se encontraron solicitudes que coincidan con "{{ search_query }}".
+            {% else %}
             No hay solicitudes registradas.
+            {% endif %}
           </td>
         </tr>
         {% endfor %}

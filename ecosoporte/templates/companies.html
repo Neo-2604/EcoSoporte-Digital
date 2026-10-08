@@ -1,3 +1,62 @@
-{% extends "base.html" %}{% block title %}Empresas{% endblock %}
-{% block content %}<div class="heading"><div><span class="eyebrow">EMPRESAS</span><h1>Empresas atendidas</h1></div>{% if session.get('role')=='ADMINISTRADOR' %}<a class="btn primary" href="{{url_for('companies.new')}}">+ Registrar empresa</a>{% endif %}</div>
-<div class="cards">{% for c in companies %}<article><span class="badge">{{c.estado}}</span><h3>{{c.nombre}}</h3><p>{{c.sector or 'Sector no definido'}} · {{c.ciudad or 'Ubicación no definida'}}</p><p>{{c.email or ''}}<br>{{c.telefono or ''}}</p></article>{% else %}<div class="empty">No hay empresas registradas.</div>{% endfor %}</div>{% endblock %}
+{% extends "base.html" %}
+
+{% block title %}Empresas | EcoSoporte Digital{% endblock %}
+
+{% block content %}
+<div class="page-heading">
+  <div>
+    <span class="heading-eyebrow">CLIENTES CORPORATIVOS</span>
+    <h1 class="page-title">Empresas Atendidas</h1>
+    <p class="page-subtitle">Gestión de organizaciones y acuerdos de nivel de servicio</p>
+  </div>
+  {% if session.get('role') == 'ADMINISTRADOR' %}
+  <div>
+    <a href="{{ url_for('companies.new') }}" class="btn btn-primary">➕ Registrar Empresa</a>
+  </div>
+  {% endif %}
+</div>
+
+<div class="panel-card" style="margin-bottom: 24px;">
+  <form method="get" action="{{ url_for('companies.index') }}" style="display: flex; gap: 12px; align-items: center;">
+    <input type="text" name="q" value="{{ search_query or '' }}" class="form-control" placeholder="Buscar empresa por nombre, NIT, sector, ciudad, email o teléfono...">
+    <button type="submit" class="btn btn-primary">🔍 Buscar</button>
+    {% if search_query %}
+    <a href="{{ url_for('companies.index') }}" class="btn btn-secondary">Limpiar</a>
+    {% endif %}
+  </form>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
+  {% for c in companies %}
+  <div class="panel-card" style="display: flex; flex-direction: column; justify-content: space-between; margin-bottom: 0;">
+    <div>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <span class="badge badge-proceso">{{ c.estado or 'ACTIVA' }}</span>
+        <small style="color: var(--text-muted);">NIT: {{ c.nit or 'N/A' }}</small>
+      </div>
+      <h3 style="font-size: 18px; font-weight: 700; color: var(--text-main); margin-bottom: 6px;">{{ c.nombre }}</h3>
+      <p style="font-size: 12.5px; color: var(--text-muted); margin-bottom: 12px;">
+        🏢 {{ c.sector or 'Sector no definido' }} · 📍 {{ c.ciudad or 'Ubicación no definida' }}
+      </p>
+      <div style="font-size: 12px; color: var(--text-dim); line-height: 1.5;">
+        {% if c.email %}📧 {{ c.email }}<br>{% endif %}
+        {% if c.telefono %}📞 {{ c.telefono }}{% endif %}
+      </div>
+    </div>
+    {% if c.contacto_nombre %}
+    <div style="padding-top: 12px; margin-top: 14px; border-top: 1px solid var(--border-color); font-size: 11.5px; color: var(--text-muted);">
+      Contacto: <strong>{{ c.contacto_nombre }}</strong> {% if c.contacto_cargo %}({{ c.contacto_cargo }}){% endif %}
+    </div>
+    {% endif %}
+  </div>
+  {% else %}
+  <div class="panel-card" style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 40px;">
+    {% if search_query %}
+    No se encontraron empresas con la búsqueda "{{ search_query }}".
+    {% else %}
+    No hay empresas registradas en la plataforma.
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
