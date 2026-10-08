@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Configuración del Sistema - EcoSoporte Digital{% endblock %}
+{% block content %}
+<div class="heading">
+  <div>
+    <span class="eyebrow">AJUSTES DE CUENTA</span>
+    <h1>Configuración y Perfil</h1>
+    <p>Información de tu usuario y parámetros del sistema.</p>
+  </div>
+</div>
+
+<section class="panel" style="max-width: 600px;">
+  <h2>Perfil de Usuario</h2>
+  <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
+    <div><strong>Nombre:</strong> {{ usuario.nombre }}</div>
+    <div><strong>Correo Electrónico:</strong> {{ usuario.email }}</div>
+    <div><strong>Rol Asignado:</strong> <span class="badge">{{ usuario.role }}</span></div>
+    <div><strong>Empresa:</strong> {{ usuario.empresa or 'EcoSoporte Digital Internal' }}</div>
+    <div><strong>Estado:</strong> <span class="badge success">{{ usuario.estado }}</span></div>
+  </div>
+</section>
+{% endblock %}

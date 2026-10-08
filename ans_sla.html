@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Acuerdos de Nivel de Servicio (ANS / SLA) - EcoSoporte Digital{% endblock %}
+{% block content %}
+<div class="heading">
+  <div>
+    <span class="eyebrow">COMPROMISO DE SERVICIO</span>
+    <h1>Niveles de Servicio ANS / SLA</h1>
+    <p>Tiempos máximos de respuesta y resolución garantizados según prioridad.</p>
+  </div>
+</div>
+
+<section class="panel">
+  <h2>Matriz de Tiempos de Atención</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Prioridad</th>
+          <th>Tiempo Máximo Primera Respuesta</th>
+          <th>Tiempo Máximo Solución</th>
+          <th>Cumplimiento Histórico</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for sla in sla_levels %}
+        <tr>
+          <td><span class="badge priority-{{sla.prioridad|lower}}">{{sla.prioridad}}</span></td>
+          <td><b>{{sla.tiempo_respuesta}}</b></td>
+          <td><b>{{sla.tiempo_solucion}}</b></td>
+          <td><strong style="color: #059669;">{{sla.cumplimiento}}</strong></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

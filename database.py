@@ -60,16 +60,16 @@ CREATE TABLE IF NOT EXISTS categorias (
 );
 CREATE TABLE IF NOT EXISTS prioridades (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    nombre TEXT UNIQUE NOT NULL,
+    name TEXT UNIQUE NOT NULL,
     nivel INTEGER NOT NULL
 );
 CREATE TABLE IF NOT EXISTS estados_ticket (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    nombre TEXT UNIQUE NOT NULL
+    name TEXT UNIQUE NOT NULL
 );
 CREATE TABLE IF NOT EXISTS niveles_soporte (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    nombre TEXT UNIQUE NOT NULL
+    name TEXT UNIQUE NOT NULL
 );
 CREATE TABLE IF NOT EXISTS tickets (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -173,12 +173,25 @@ def get_db():
 def init_db(app):
     with app.app_context():
         db = get_db()
+        # Handle migration for existing DB files that used 'nombre' instead of 'name'
+        tables = [r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
+        if 'prioridades' in tables:
+            cols = [r[1] for r in db.execute("PRAGMA table_info(prioridades)").fetchall()]
+            if 'nombre' in cols and 'name' not in cols:
+                db.execute("ALTER TABLE prioridades RENAME COLUMN nombre TO name")
+        if 'estados_ticket' in tables:
+            cols = [r[1] for r in db.execute("PRAGMA table_info(estados_ticket)").fetchall()]
+            if 'nombre' in cols and 'name' not in cols:
+                db.execute("ALTER TABLE estados_ticket RENAME COLUMN nombre TO name")
+        if 'niveles_soporte' in tables:
+            cols = [r[1] for r in db.execute("PRAGMA table_info(niveles_soporte)").fetchall()]
+            if 'nombre' in cols and 'name' not in cols:
+                db.execute("ALTER TABLE niveles_soporte RENAME COLUMN nombre TO name")
         db.executescript(SCHEMA)
         db.commit()
         db.close()
 
 def seed_db(app):
-    from flask import current_app
     with app.app_context():
         db = get_db()
         roles = ["ADMINISTRADOR","TECNICO_NIVEL_1","TECNICO_NIVEL_2","TECNICO_NIVEL_3","CLIENTE"]
@@ -191,7 +204,7 @@ def seed_db(app):
         for name in ["Hardware","Software","Redes","Sistemas","Seguridad","Mantenimiento","Otros"]:
             db.execute("INSERT OR IGNORE INTO categorias(nombre) VALUES (?)",(name,))
         for name in ["NIVEL 1","NIVEL 2","NIVEL 3"]:
-            db.execute("INSERT OR IGNORE INTO niveles_soporte(nombre) VALUES (?)",(name,))
+            db.execute("INSERT OR IGNORE INTO niveles_soporte(name) VALUES (?)",(name,))
         admin_email = os.getenv("ADMIN_EMAIL","admin@ecosoportedigital.com")
         admin_password = os.getenv("ADMIN_PASSWORD","EcoSoporteAdmin2026!")
         role = db.execute("SELECT id FROM roles WHERE name='ADMINISTRADOR'").fetchone()

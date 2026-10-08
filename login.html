@@ -1,2 +1,45 @@
-{% extends "base.html" %}{% block title %}Ingresar{% endblock %}
-{% block content %}<div class="auth"><div class="auth-info"><span class="logo big">E</span><span class="eyebrow">ECOSOPORTE DIGITAL</span><h1>Centro de soporte TI.</h1><p>Gestiona tus solicitudes y mantén el control de tu tecnología.</p></div><form class="form" method="post"><h2>Iniciar sesión</h2><p>Ingresa con tus credenciales.</p><label>Correo electrónico<input type="email" name="email" required></label><label>Contraseña<input type="password" name="password" required></label><button class="btn primary" type="submit">Ingresar →</button></form></div>{% endblock %}
+{% extends "base.html" %}
+
+{% block title %}Iniciar Sesión - EcoSoporte Digital{% endblock %}
+
+{% block content_unauth %}
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-sidebar">
+      <div>
+        <img src="{{ url_for('static', filename='img/logo.png') }}" alt="EcoSoporte Digital Official Logo" class="auth-logo">
+        <h2 style="font-size: 1.5rem; font-weight: 800; margin-bottom: 0.75rem;">EcoSoporte Digital</h2>
+        <p style="font-size: 0.95rem; line-height: 1.6; opacity: 0.9;">
+          Plataforma empresarial de gestión inteligente de soporte TI, mesas de ayuda y mantenimiento tecnológico sostenible.
+        </p>
+      </div>
+      <div style="font-size: 0.825rem; opacity: 0.8; margin-top: 2rem;">
+        © 2026 EcoSoporte Digital. Todos los derechos reservados.
+      </div>
+    </div>
+
+    <div class="auth-form-container">
+      <div style="margin-bottom: 1.5rem;">
+        <h1 style="font-size: 1.5rem; font-weight: 800; color: #0f172a; margin-bottom: 0.25rem;">Bienvenido</h1>
+        <p style="color: #64748b; font-size: 0.9rem;">Ingresa tus credenciales para acceder al sistema.</p>
+      </div>
+
+      <form method="post" style="display: flex; flex-direction: column; gap: 1.25rem;">
+        <div>
+          <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.35rem;">Correo electrónico</label>
+          <input type="email" name="email" required placeholder="tu.correo@empresa.com" style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-size: 0.95rem; outline: none; transition: border-color 0.2s;">
+        </div>
+
+        <div>
+          <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #334155; margin-bottom: 0.35rem;">Contraseña</label>
+          <input type="password" name="password" required placeholder="••••••••" style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #cbd5e1; border-radius: 0.5rem; font-size: 0.95rem; outline: none; transition: border-color 0.2s;">
+        </div>
+
+        <button type="submit" class="btn primary" style="width: 100%; padding: 0.85rem; font-size: 1rem; font-weight: 700; margin-top: 0.5rem;">
+          Iniciar Sesión →
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

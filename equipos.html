@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Equipos y Activos - EcoSoporte Digital{% endblock %}
+{% block content %}
+<div class="heading">
+  <div>
+    <span class="eyebrow">INVENTARIO TI</span>
+    <h1>Gestión de Equipos y Activos</h1>
+    <p>Inventario de hardware, servidores y dispositivos registrados.</p>
+  </div>
+</div>
+
+<section class="panel" style="margin-bottom: 2rem;">
+  <h2>Registrar nuevo equipo</h2>
+  <form method="post" class="form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+    <div>
+      <label>Nombre del equipo</label>
+      <input type="text" name="nombre" required placeholder="Ej: Laptop HP ProBook">
+    </div>
+    <div>
+      <label>Tipo</label>
+      <select name="tipo">
+        <option value="Laptop">Laptop / Portátil</option>
+        <option value="Desktop">Desktop / Computador de Escritorio</option>
+        <option value="Servidor">Servidor</option>
+        <option value="Red">Equipo de Red (Router/Switch)</option>
+        <option value="Impresora">Impresora / Multifuncional</option>
+        <option value="Otro">Otro activo</option>
+      </select>
+    </div>
+    <div>
+      <label>Marca</label>
+      <input type="text" name="marca" placeholder="Ej: Dell, Lenovo, HP">
+    </div>
+    <div>
+      <label>Modelo</label>
+      <input type="text" name="modelo" placeholder="Ej: ThinkPad E14">
+    </div>
+    <div>
+      <label>Número de Serie</label>
+      <input type="text" name="serial" placeholder="Ej: SN-987654321">
+    </div>
+    <div>
+      <label>Sistema Operativo</label>
+      <input type="text" name="sistema_operativo" placeholder="Ej: Windows 11 / Ubuntu">
+    </div>
+    <div style="grid-column: 1 / -1; margin-top: 0.5rem;">
+      <button type="submit" class="btn primary">+ Guardar Equipo</button>
+    </div>
+  </form>
+</section>
+
+<section class="panel">
+  <h2>Equipos Registrados</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Equipo</th>
+          <th>Tipo</th>
+          <th>Marca / Modelo</th>
+          <th>Serial</th>
+          <th>Sistema Operativo</th>
+          <th>Asignado a</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for eq in equipos %}
+        <tr>
+          <td>#{{eq.id}}</td>
+          <td><b>{{eq.nombre}}</b></td>
+          <td>{{eq.tipo or '-'}}</td>
+          <td>{{eq.marca or ''}} {{eq.modelo or ''}}</td>
+          <td><code>{{eq.serial or '-'}}</code></td>
+          <td>{{eq.sistema_operativo or '-'}}</td>
+          <td>{{eq.usuario or eq.empresa or 'General'}}</td>
+          <td><span class="badge success">{{eq.estado or 'ACTIVO'}}</span></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="empty" style="text-align: center; padding: 2rem;">No hay equipos registrados.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

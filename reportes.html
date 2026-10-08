@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Reportes y Métricas - EcoSoporte Digital{% endblock %}
+{% block content %}
+<div class="heading">
+  <div>
+    <span class="eyebrow">ANALYTICS</span>
+    <h1>Reportes e Indicadores TI</h1>
+    <p>Estadísticas y rendimiento operativo de atención de solicitudes.</p>
+  </div>
+</div>
+
+<div class="metrics" style="margin-bottom: 2rem;">
+  <div class="metric"><small>Total Histórico de Tickets</small><strong>{{ total_tickets }}</strong></div>
+  <div class="metric"><small>Solicitudes Resueltas</small><strong style="color: #059669;">{{ resueltos }}</strong></div>
+  <div class="metric"><small>Tasa de Solución</small><strong>{% if total_tickets > 0 %}{{ ((resueltos / total_tickets) * 100)|round(1) }}%{% else %}100%{% endif %}</strong></div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem;">
+  <section class="panel">
+    <h2>Tickets por Categoria</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Categoría</th><th>Total Tickets</th></tr></thead>
+        <tbody>
+          {% for cat in por_categoria %}
+          <tr><td>{{cat.nombre}}</td><td><b>{{cat.total}}</b></td></tr>
+          {% else %}
+          <tr><td colspan="2">Sin datos disponibles.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Tickets por Prioridad</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Prioridad</th><th>Total Tickets</th></tr></thead>
+        <tbody>
+          {% for pri in por_prioridad %}
+          <tr><td><span class="badge">{{pri.name}}</span></td><td><b>{{pri.total}}</b></td></tr>
+          {% else %}
+          <tr><td colspan="2">Sin datos disponibles.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}
