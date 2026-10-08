@@ -65,7 +65,17 @@
 
   <!-- Equipment List -->
   <section class="panel-card">
-    <h2 class="panel-title" style="margin-bottom: 16px;">Equipos Registrados</h2>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+      <h2 class="panel-title" style="margin: 0;">Equipos Registrados</h2>
+      <form method="get" action="{{ url_for('main.equipos') }}" style="display: flex; gap: 8px;">
+        <input type="text" name="q" value="{{ search_query or '' }}" class="form-control" style="padding: 6px 12px; font-size: 12.5px; width: 220px;" placeholder="Buscar equipo, serial, marca, S.O...">
+        <button type="submit" class="btn btn-sm btn-primary">🔍</button>
+        {% if search_query %}
+        <a href="{{ url_for('main.equipos') }}" class="btn btn-sm btn-secondary">Limpiar</a>
+        {% endif %}
+      </form>
+    </div>
+
     <div class="table-responsive">
       <table class="data-table">
         <thead>
@@ -92,7 +102,11 @@
           {% else %}
           <tr>
             <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 24px;">
+              {% if search_query %}
+              No se encontraron equipos con la búsqueda "{{ search_query }}".
+              {% else %}
               No hay equipos registrados en el inventario.
+              {% endif %}
             </td>
           </tr>
           {% endfor %}

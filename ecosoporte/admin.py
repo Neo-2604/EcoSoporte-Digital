@@ -33,16 +33,29 @@ def users():
         else:
             flash("Todos los campos obligatorios deben ser diligenciados.", "warning")
 
-    users_list = db.execute("""
-        SELECT u.*, r.name role, e.nombre empresa
-        FROM usuarios u
-        JOIN roles r ON r.id=u.role_id
-        LEFT JOIN empresas e ON e.id=u.empresa_id
-        ORDER BY u.id DESC
-    """).fetchall()
+    query_str = request.args.get("q", "").strip()
+    if query_str:
+        pattern = f"%{query_str}%"
+        users_list = db.execute("""
+            SELECT u.*, r.name role, e.nombre empresa
+            FROM usuarios u
+            JOIN roles r ON r.id=u.role_id
+            LEFT JOIN empresas e ON e.id=u.empresa_id
+            WHERE u.nombre LIKE ? OR u.email LIKE ? OR r.name LIKE ? OR e.nombre LIKE ?
+            ORDER BY u.id DESC
+        """, (pattern, pattern, pattern, pattern)).fetchall()
+    else:
+        users_list = db.execute("""
+            SELECT u.*, r.name role, e.nombre empresa
+            FROM usuarios u
+            JOIN roles r ON r.id=u.role_id
+            LEFT JOIN empresas e ON e.id=u.empresa_id
+            ORDER BY u.id DESC
+        """).fetchall()
+
     roles_list = db.execute("SELECT name FROM roles ORDER BY id").fetchall()
     db.close()
-    return render_template("users.html", users=users_list, roles=roles_list)
+    return render_template("users.html", users=users_list, roles=roles_list, search_query=query_str)
 
 @admin_bp.route("/users/<int:user_id>/toggle", methods=["POST"])
 @role_required("ADMINISTRADOR")
